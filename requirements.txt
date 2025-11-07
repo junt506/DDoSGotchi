@@ -1,0 +1,23 @@
+# DDoS Gotchi Requirements
+# Python 3.8+
+
+# Core UI and graphics
+pygame>=2.5.0
+
+# Network monitoring
+psutil>=5.9.0
+netifaces>=0.11.0
+
+# Standard library modules (included with Python)
+# - subprocess
+# - threading
+# - socket
+# - json
+# - random
+# - time
+# - collections
+# - datetime
+# - typing
+# - re
+# - platform
+# - sys

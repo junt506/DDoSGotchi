@@ -1,0 +1,64 @@
+{
+    "network": {
+        "target_network": "45.33.0",
+        "gateway": "45.33.0.1",
+        "target_ssid": "Mirai <3",
+        "ping_count": 5,
+        "ping_interval": 2
+    },
+    "thresholds": {
+        "happy": {
+            "max_latency": 10,
+            "max_packet_loss": 1
+        },
+        "alert": {
+            "max_latency": 50,
+            "max_packet_loss": 5
+        },
+        "under_attack": {
+            "max_latency": 200,
+            "max_packet_loss": 20
+        },
+        "stressed": {
+            "min_latency": 200,
+            "min_packet_loss": 20
+        }
+    },
+    "ui": {
+        "window_width": 900,
+        "window_height": 600,
+        "fps": 30,
+        "quote_interval_seconds": 15,
+        "matrix_rain_enabled": true,
+        "scanlines_enabled": true,
+        "blink_animation_enabled": true,
+        "glitch_effects_enabled": true
+    },
+    "colors": {
+        "matrix_green": [0, 255, 65],
+        "dark_green": [0, 128, 32],
+        "black": [0, 0, 0],
+        "red": [255, 0, 0],
+        "orange": [255, 165, 0],
+        "yellow": [255, 255, 0]
+    },
+    "monitoring": {
+        "smoothing_window": 5,
+        "history_size": 10,
+        "check_interval_seconds": 2,
+        "connection_timeout": 1
+    },
+    "features": {
+        "sound_effects": false,
+        "log_attacks": true,
+        "export_stats": false,
+        "email_alerts": false
+    },
+    "custom_quotes": {
+        "happy": [],
+        "alert": [],
+        "under_attack": [],
+        "stressed": [],
+        "disconnected": []
+    }
+}
