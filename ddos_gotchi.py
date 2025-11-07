@@ -486,16 +486,17 @@ class CyberUI:
     def render_stats(self, stats: Dict, state: str):
         """Render network statistics"""
         y_offset = 280
-        
-        # Connection status
-        connected_color = MATRIX_GREEN if stats['connected'] else RED
-        status_symbol = "●" if stats['connected'] else "○"
-        status_text = f"STATUS: {status_symbol} {'CONNECTED' if stats['connected'] else 'DISCONNECTED'}"
+
+        # Connection status (with defensive checks)
+        connected = stats.get('connected', False)
+        connected_color = MATRIX_GREEN if connected else RED
+        status_symbol = "●" if connected else "○"
+        status_text = f"STATUS: {status_symbol} {'CONNECTED' if connected else 'DISCONNECTED'}"
         self._render_text(status_text, connected_color, WINDOW_WIDTH // 2, y_offset)
         y_offset += 30
-        
+
         # Network info
-        if stats['connected']:
+        if connected:
             network_text = f"NETWORK: {stats.get('ssid', 'Unknown')}"
             self._render_text(network_text, MATRIX_GREEN, WINDOW_WIDTH // 2, y_offset)
             y_offset += 30
@@ -627,10 +628,20 @@ class DDoSGotchi:
         self.network_monitor = NetworkMonitor()
         self.state_manager = StateManager()
         self.ui = CyberUI(self.screen, self.font, self.big_font, self.small_font)
-        
+
         # Threading for network monitoring
         self.running = True
-        self.stats = {}
+        # Initialize stats with default values to prevent race condition
+        self.stats = {
+            'connected': False,
+            'ssid': 'Initializing...',
+            'latency': -1,
+            'packet_loss': 0,
+            'avg_latency': -1,
+            'avg_packet_loss': 0,
+            'interface': None,
+            'gateway': self.network_monitor.gateway
+        }
         self.monitor_thread = threading.Thread(target=self.monitor_network, daemon=True)
         self.monitor_thread.start()
         
