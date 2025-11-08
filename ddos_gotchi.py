@@ -209,8 +209,14 @@ class ConfigManager:
 
     def get(self, section: str, key: str = None, default=None):
         """Get configuration value"""
-        if key is None:
+        # If key is None or not a string, return the whole section
+        if key is None or not isinstance(key, str):
+            # If key is not None and not a string, it's probably the default value
+            if key is not None and not isinstance(key, str):
+                default = key
+                key = None
             return self.config.get(section, default)
+        # Otherwise, get the specific key from the section
         return self.config.get(section, {}).get(key, default)
 
     def save(self):
