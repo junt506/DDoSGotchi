@@ -1,5 +1,5 @@
 // ============================================================================
-// DDOS GOTCHI v3.0 - HUD RENDERER
+// DDOS GOTCHI v3.0 - Redesigned HUD Renderer
 // ============================================================================
 
 // ============================================================================
@@ -13,7 +13,6 @@ const FACES = {
     EXCITED: "ヽ(◕‿‿◕)ﾉ",
     ATTACK: "(╬ಠ益ಠ)",
     BORED: "(◡‿◡✿)",
-    SLEEPING: "(◡_◡)",
 };
 
 const QUOTES_NORMAL = [
@@ -25,8 +24,6 @@ const QUOTES_NORMAL = [
     "scanning for threats...",
     "neural network active",
     "defenses online",
-    "standing guard...",
-    "pattern matching...",
 ];
 
 const QUOTES_ATTACK = [
@@ -35,7 +32,6 @@ const QUOTES_ATTACK = [
     "defensive mode activated",
     "repelling intruders!",
     "threat neutralization active",
-    "shields up! engaging...",
 ];
 
 // ============================================================================
@@ -45,82 +41,70 @@ const QUOTES_ATTACK = [
 let ws = null;
 let reconnectInterval = null;
 let isAttackMode = false;
-let connectionHistory = [];
+
+// Graph data storage
+const maxDataPoints = 60;
+let latencyHistory = [];
 let packetLossHistory = [];
-let connectionsPerSecond = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-let currentQuote = QUOTES_NORMAL[0];
+
+// Connection tracking
+let allConnections = [];
+let maxLogEntries = 50;
+
+// Activity bars
+let activityData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 // ============================================================================
-// DYNAMIC ELEMENT GENERATION (from original CodePen)
+// INITIALIZATION
 // ============================================================================
 
-function initializeElements() {
-    // Generate blinking numbers for #a3 (connection ports/IPs)
-    const a3 = document.getElementById('a3');
-    for (let i = 1; i < 11; i++) {
-        const span = document.createElement('span');
-        span.className = 'a3' + i;
-        span.style.animation = `pulse ${1 + Math.random()}s ease-in-out infinite`;
-        a3.appendChild(span);
-    }
+function init() {
+    console.log('DDoS Gotchi v3.0 - Initializing...');
 
-    // Generate activity bars for #a4
-    const a4 = document.getElementById('a4');
-    for (let i = 1; i < 31; i++) {
-        const span = document.createElement('span');
-        span.className = 'a4' + i;
-        a4.appendChild(span);
-    }
+    // Generate dynamic 3D elements
+    generateTickMarks();
+    generateActivityBars();
 
-    // Generate connection indicators for #a5
-    const a5 = document.getElementById('a5');
-    for (let i = 1; i < 16; i++) {
-        const span = document.createElement('span');
-        const b = document.createElement('b');
-        b.className = 'a5' + i;
-        b.style.animation = `blink ${1 + i * 0.1}s linear infinite`;
-        span.appendChild(b);
-        a5.appendChild(span);
-    }
+    // Connect to backend
+    connectWebSocket();
 
-    // Generate grid lines for #a8 (packet loss graph)
-    const a8 = document.getElementById('a8');
-    for (let i = 1; i < 41; i++) {
-        const span = document.createElement('span');
-        a8.appendChild(span);
-    }
+    // Start periodic updates
+    setInterval(updateTime, 1000);
+    setInterval(() => updateQuote(null, true), 5000);
 
-    // Generate rotating tick marks for #f2
+    // Set initial mode
+    document.body.classList.add('mode-normal');
+
+    console.log('Initialization complete');
+}
+
+// Generate rotating tick marks for #f2
+function generateTickMarks() {
     const f2 = document.getElementById('f2');
-    for (let i = 1; i < 37; i++) {
+    for (let i = 0; i < 36; i++) {
         const span = document.createElement('span');
-        span.className = 'f2' + i;
-        span.style.transform = `rotateZ(${i * 10}deg) translateY(190px)`;
+        span.style.transform = `rotateZ(${i * 10}deg) translateY(200px)`;
         f2.appendChild(span);
     }
 
-    // Generate inner rotating numbers for #f5
+    // Generate inner tick marks for #f5
     const f5 = document.getElementById('f5');
-    for (let i = 1; i < 19; i++) {
+    for (let i = 0; i < 18; i++) {
         const span = document.createElement('span');
-        const b = document.createElement('b');
-        b.textContent = Math.floor(Math.random() * 30);
-        span.appendChild(b);
-        span.className = 'f5' + i;
-        span.style.transform = `rotateZ(${i * 20}deg) translateY(80px)`;
+        span.style.transform = `rotateZ(${i * 20}deg) translateY(100px)`;
         f5.appendChild(span);
     }
+}
 
-    // Generate outer ring markers for #f1
-    const f1 = document.getElementById('f1');
-    for (let i = 1; i < 13; i++) {
-        const span = document.createElement('span');
-        span.className = 'f1' + i;
-        span.style.transform = `rotateZ(${i * 30}deg) translateY(182px)`;
-        f1.appendChild(span);
+// Generate activity bars
+function generateActivityBars() {
+    const container = document.getElementById('activity-bars');
+    for (let i = 0; i < 10; i++) {
+        const bar = document.createElement('div');
+        bar.className = 'activity-bar';
+        bar.style.height = '5px';
+        container.appendChild(bar);
     }
-
-    console.log('UI elements initialized');
 }
 
 // ============================================================================
@@ -131,7 +115,7 @@ function connectWebSocket() {
     ws = new WebSocket('ws://localhost:8765');
 
     ws.onopen = () => {
-        console.log('Connected to DDoS Gotchi backend');
+        console.log('✓ Connected to backend');
         updateQuote("connected to backend!", false);
 
         if (reconnectInterval) {
@@ -145,7 +129,7 @@ function connectWebSocket() {
             const data = JSON.parse(event.data);
             updateUI(data);
         } catch (error) {
-            console.error('Error parsing WebSocket data:', error);
+            console.error('Error parsing data:', error);
         }
     };
 
@@ -154,7 +138,7 @@ function connectWebSocket() {
     };
 
     ws.onclose = () => {
-        console.log('Disconnected from backend. Reconnecting...');
+        console.log('✗ Disconnected from backend. Reconnecting...');
         updateQuote("connection lost... retrying", false);
 
         if (!reconnectInterval) {
@@ -172,155 +156,54 @@ function connectWebSocket() {
 
 function updateUI(data) {
     // Update attack mode state
+    const wasAttackMode = isAttackMode;
     isAttackMode = data.attack_detected || false;
 
-    // Update body class for global color changes
-    if (isAttackMode) {
-        document.body.classList.add('attack-mode');
-        document.getElementById('container').classList.remove('normal', 'warning');
-        document.getElementById('container').classList.add('attack');
-    } else if (data.threat_level === 'warning') {
-        document.body.classList.remove('attack-mode');
-        document.getElementById('container').classList.remove('normal', 'attack');
-        document.getElementById('container').classList.add('warning');
-    } else {
-        document.body.classList.remove('attack-mode');
-        document.getElementById('container').classList.remove('warning', 'attack');
-        document.getElementById('container').classList.add('normal');
+    // Switch modes
+    if (isAttackMode !== wasAttackMode) {
+        if (isAttackMode) {
+            document.body.classList.remove('mode-normal');
+            document.body.classList.add('mode-attack');
+        } else {
+            document.body.classList.remove('mode-attack');
+            document.body.classList.add('mode-normal');
+        }
     }
 
-    // Update network load bar (#a1 - top progress bar)
-    const networkLoad = Math.min(100, (data.total_connections / 100) * 100);
-    document.getElementById('a11').style.width = networkLoad + '%';
-
-    // Update latency gauge (#a2 - rotating needle)
-    const latencyAngle = Math.min(180, (data.latency / 200) * 180);
-    document.getElementById('a21').style.transform = `rotateZ(${latencyAngle}deg) translateY(50%)`;
-
-    // Update connection ports/IPs display (#a3)
-    updateConnectionNumbers(data.recent_connections);
-
-    // Update connection activity bars (#a4)
-    updateActivityBars(data.total_connections);
-
-    // Update network stats panel (#a7)
+    // Update stats
     document.getElementById('stat-connections').textContent = data.total_connections || 0;
     document.getElementById('stat-unique-ips').textContent = data.unique_ips || 0;
+    document.getElementById('stat-latency').textContent = `${data.latency || 0} ms`;
+    document.getElementById('stat-packet-loss').textContent = `${(data.packet_loss || 0).toFixed(1)}%`;
 
+    // Update threat level
     const threatEl = document.getElementById('stat-threat');
+    threatEl.classList.remove('threat-normal', 'threat-warning', 'threat-attack');
+
     if (isAttackMode) {
         threatEl.textContent = 'ATTACK';
-        threatEl.className = 'attack';
+        threatEl.classList.add('threat-attack');
     } else if (data.threat_level === 'warning') {
-        threatEl.textContent = 'WARN';
-        threatEl.className = 'warning';
+        threatEl.textContent = 'WARNING';
+        threatEl.classList.add('threat-warning');
     } else {
-        threatEl.textContent = 'SAFE';
-        threatEl.className = 'safe';
+        threatEl.textContent = 'NORMAL';
+        threatEl.classList.add('threat-normal');
     }
-
-    // Update packet loss graph (#a8)
-    const packetLossPercent = data.packet_loss || 0;
-    const graphHeight = Math.min(320, (packetLossPercent / 100) * 320);
-    document.getElementById('a81').style.height = graphHeight + 'px';
-
-    // Update live IP addresses (#a9)
-    updateLiveIPs(data.recent_connections);
-
-    // Update threat level bar and quote (#a10)
-    const threatWidth = isAttackMode ? 200 : Math.min(200, (data.total_connections / 50) * 200);
-    const threatBar = document.getElementById('threat-bar');
-    threatBar.style.width = threatWidth + 'px';
-
-    if (isAttackMode) {
-        threatBar.style.background = '#F00';
-    } else if (data.threat_level === 'warning') {
-        threatBar.style.background = '#FC0';
-    } else {
-        threatBar.style.background = '#666';
-    }
-
-    // Update connections per second bar graph (#b1)
-    updateConnectionsBars(data.total_connections);
-
-    // Update 3D figure info panel
-    document.getElementById('fig-latency').textContent = data.latency || 0;
-    document.getElementById('fig-packet-loss').textContent = packetLossPercent.toFixed(1);
 
     // Update Pwnagotchi face
     updateFace(data);
 
     // Update connection log
-    if (data.recent_connections && data.recent_connections.length > 0) {
+    if (data.recent_connections) {
         updateConnectionLog(data.recent_connections);
     }
 
-    // Update current time
-    const now = new Date();
-    document.getElementById('current-time').textContent = now.toLocaleTimeString();
-}
+    // Update activity bars
+    updateActivityBars(data.total_connections);
 
-function updateConnectionNumbers(connections) {
-    if (!connections || connections.length === 0) return;
-
-    const spans = document.querySelectorAll('#a3 span');
-    spans.forEach((span, index) => {
-        if (connections[index]) {
-            // Show last octet of IP or port number
-            const conn = connections[index];
-            const parts = conn.remote_ip.split('.');
-            span.textContent = parts[3] || conn.remote_port;
-        } else {
-            span.textContent = Math.floor(Math.random() * 999);
-        }
-    });
-}
-
-function updateActivityBars(totalConnections) {
-    const bars = document.querySelectorAll('#a4 span');
-    bars.forEach((bar) => {
-        const width = Math.random() * 15;
-        bar.style.width = width + 'px';
-    });
-}
-
-function updateLiveIPs(connections) {
-    if (!connections || connections.length === 0) return;
-
-    const segments = document.querySelectorAll('#a9 .ip-segment');
-
-    // Show latest IP address parts
-    if (connections[0]) {
-        const ip = connections[0].remote_ip;
-        const parts = ip.split('.');
-
-        if (parts.length === 4) {
-            segments[0].textContent = parts[0];
-            segments[1].textContent = parts[1];
-            segments[2].textContent = parts[2];
-            segments[3].textContent = parts[3];
-            segments[4].textContent = connections[0].remote_port;
-
-            // Color code based on local vs public
-            const isLocal = ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.');
-            segments.forEach(seg => {
-                seg.className = isLocal ? 'ip-segment local-ip' : 'ip-segment public-ip';
-            });
-        }
-    }
-}
-
-function updateConnectionsBars(totalConnections) {
-    // Shift history
-    connectionsPerSecond.shift();
-    connectionsPerSecond.push(totalConnections);
-
-    // Update bar heights
-    const bars = document.querySelectorAll('#b1 span');
-    bars.forEach((bar, index) => {
-        const height = Math.min(100, (connectionsPerSecond[index] / 10) * 100);
-        bar.style.height = height + 'px';
-    });
+    // Update graphs
+    updateGraphs(data.latency || 0, data.packet_loss || 0);
 }
 
 function updateFace(data) {
@@ -340,73 +223,139 @@ function updateFace(data) {
 }
 
 function updateQuote(customQuote = null, checkAttack = true) {
-    const quoteEl = document.getElementById('threat-quote');
+    const quoteEl = document.getElementById('gotchi-quote');
 
     if (customQuote) {
         quoteEl.textContent = customQuote;
-        currentQuote = customQuote;
         return;
     }
 
     if (checkAttack && isAttackMode) {
-        currentQuote = QUOTES_ATTACK[Math.floor(Math.random() * QUOTES_ATTACK.length)];
+        quoteEl.textContent = QUOTES_ATTACK[Math.floor(Math.random() * QUOTES_ATTACK.length)];
     } else {
-        currentQuote = QUOTES_NORMAL[Math.floor(Math.random() * QUOTES_NORMAL.length)];
+        quoteEl.textContent = QUOTES_NORMAL[Math.floor(Math.random() * QUOTES_NORMAL.length)];
     }
-
-    quoteEl.textContent = currentQuote;
 }
 
 function updateConnectionLog(connections) {
+    if (!connections || connections.length === 0) return;
+
     const logEl = document.getElementById('connection-log');
 
-    // Add new connections to log
+    // Add new connections to the top
     connections.forEach(conn => {
         const isLocal = conn.remote_ip.startsWith('192.168.') ||
                        conn.remote_ip.startsWith('10.') ||
                        conn.remote_ip.startsWith('172.');
 
-        const logClass = isLocal ? 'local' : 'public';
-        const prefix = isLocal ? 'LOCAL' : 'REMOTE';
-
         const entry = document.createElement('div');
-        entry.className = `log-entry ${logClass}`;
-        entry.textContent = `${prefix} ${conn.remote_ip}:${conn.remote_port}`;
+        entry.className = `log-entry ${isLocal ? 'local' : 'public'}`;
 
-        // Add to top of log
+        const prefix = isLocal ? 'LOCAL' : 'REMOTE';
+        entry.textContent = `${prefix} ${conn.remote_ip}:${conn.remote_port} → :${conn.local_port}`;
+
+        // Add to top
         logEl.insertBefore(entry, logEl.firstChild);
+    });
 
-        // Keep only last 20 entries
-        while (logEl.children.length > 20) {
-            logEl.removeChild(logEl.lastChild);
-        }
+    // Keep only recent entries
+    while (logEl.children.length > maxLogEntries) {
+        logEl.removeChild(logEl.lastChild);
+    }
+}
+
+function updateActivityBars(totalConnections) {
+    // Shift data
+    activityData.shift();
+    activityData.push(totalConnections);
+
+    // Update bar heights
+    const bars = document.querySelectorAll('.activity-bar');
+    bars.forEach((bar, index) => {
+        const height = Math.min(150, Math.max(5, (activityData[index] / 10) * 150));
+        bar.style.height = height + 'px';
     });
 }
 
-// ============================================================================
-// PERIODIC UPDATES
-// ============================================================================
-
-// Change quote every 5 seconds
-setInterval(() => {
-    updateQuote(null, true);
-}, 5000);
+function updateTime() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString();
+    document.getElementById('current-time').textContent = timeStr;
+}
 
 // ============================================================================
-// INITIALIZATION
+// GRAPHS
+// ============================================================================
+
+function updateGraphs(latency, packetLoss) {
+    // Add to history
+    latencyHistory.push(latency);
+    packetLossHistory.push(packetLoss);
+
+    // Keep only recent data
+    if (latencyHistory.length > maxDataPoints) {
+        latencyHistory.shift();
+        packetLossHistory.shift();
+    }
+
+    // Draw both graphs
+    drawGraph('latency-graph', latencyHistory, '#0F0', 200);
+    drawGraph('packetloss-graph', packetLossHistory, '#F00', 100);
+}
+
+function drawGraph(canvasId, data, color, maxValue) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+
+    // Clear canvas
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, width, height);
+
+    if (data.length < 2) return;
+
+    // Draw grid
+    ctx.strokeStyle = 'rgba(0, 255, 0, 0.1)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+        const y = (height / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+    }
+
+    // Draw data line
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.shadowBlur = 5;
+    ctx.shadowColor = color;
+    ctx.beginPath();
+
+    const pointSpacing = width / (maxDataPoints - 1);
+
+    data.forEach((value, index) => {
+        const x = index * pointSpacing;
+        const y = height - (value / maxValue) * height;
+
+        if (index === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    });
+
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+}
+
+// ============================================================================
+// START APPLICATION
 // ============================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DDoS Gotchi v3.0 - HUD Interface Loaded');
-
-    // Initialize all UI elements
-    initializeElements();
-
-    // Connect to backend
-    connectWebSocket();
-
-    // Set initial quote
-    updateQuote("booting system...", false);
-
-    console.log('Initialization complete');
+    init();
 });
