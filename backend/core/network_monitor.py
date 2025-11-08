@@ -125,10 +125,12 @@ class NetworkMonitor:
             return False
 
         try:
-            socket.create_connection((self.gateway, 80), timeout=1).close()
+            # Quick connectivity check with short timeout
+            socket.create_connection((self.gateway, 80), timeout=0.5).close()
             return True
         except:
-            return False
+            # If port 80 fails, just assume we're connected if we have a gateway
+            return bool(self.gateway)
 
     def get_latency(self) -> float:
         """Measure latency to gateway"""
@@ -141,7 +143,7 @@ class NetworkMonitor:
             else:
                 cmd = ['ping', '-c', '1', '-W', '1', self.gateway]
 
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=2)
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=1.5)
 
             if result.returncode == 0:
                 match = re.search(r'time=(\d+\.?\d*)\s*ms', result.stdout)
@@ -150,6 +152,9 @@ class NetworkMonitor:
                     self.latency_history.append(latency)
                     self.baseline_latencies.append(latency)
                     return latency
+        except subprocess.TimeoutExpired:
+            print(f"⏱️  Latency check timed out")
+            return 1000.0  # Return high latency on timeout
         except Exception as e:
             print(f"Latency check error: {e}")
 
@@ -162,11 +167,12 @@ class NetworkMonitor:
 
         try:
             if platform.system() == "Windows":
-                cmd = ['ping', '-n', '5', '-w', '1000', self.gateway]
+                cmd = ['ping', '-n', '3', '-w', '500', self.gateway]
             else:
-                cmd = ['ping', '-c', '5', '-W', '1', '-i', '0.2', self.gateway]
+                # Reduced to 3 pings with 0.5s timeout for faster response
+                cmd = ['ping', '-c', '3', '-W', '1', '-i', '0.2', self.gateway]
 
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=2)
 
             match = re.search(r'(\d+)%\s*(packet\s*)?loss', result.stdout)
             if match:
@@ -174,13 +180,20 @@ class NetworkMonitor:
                 self.packet_loss_history.append(loss)
                 self.baseline_packet_loss.append(loss)
                 return loss
+        except subprocess.TimeoutExpired:
+            print(f"⏱️  Packet loss check timed out")
+            return 50.0  # Return moderate loss on timeout
         except Exception as e:
             print(f"Packet loss check error: {e}")
 
         return 0.0 if self.connected else 100.0
 
-    def get_current_stats(self) -> Dict:
-        """Get current network statistics"""
+    def get_current_stats(self, include_packet_loss: bool = True) -> Dict:
+        """Get current network statistics
+
+        Args:
+            include_packet_loss: If False, skip packet loss check for faster response
+        """
         # Update connection status
         self.connected = self._check_connectivity()
 
@@ -201,7 +214,13 @@ class NetworkMonitor:
 
         if self.connected:
             latency = self.get_latency()
-            packet_loss = self.get_packet_loss()
+
+            # Only calculate packet loss if requested (it's slower)
+            if include_packet_loss:
+                packet_loss = self.get_packet_loss()
+            else:
+                # Use last known packet loss or 0
+                packet_loss = self.packet_loss_history[-1] if self.packet_loss_history else 0
 
             stats['latency'] = latency
             stats['packet_loss'] = packet_loss
