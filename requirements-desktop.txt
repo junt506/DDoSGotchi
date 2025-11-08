@@ -8,8 +8,7 @@ psutil>=5.9.0
 # GUI and graphs
 matplotlib>=3.5.0
 
-# Note: tkinter comes pre-installed with Python on most systems
-# If tkinter is missing, install it via your system package manager:
-#   Ubuntu/Debian: sudo apt-get install python3-tk
-#   Fedora: sudo dnf install python3-tkinter
-#   macOS: comes with Python
+# Note: System packages needed (install via package manager):
+#   Ubuntu/Debian: sudo apt-get install python3-tk python3-pil.imagetk
+#   Fedora: sudo dnf install python3-tkinter python3-pillow-tk
+#   macOS: comes with Python (no additional packages needed)
