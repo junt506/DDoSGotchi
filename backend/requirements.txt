@@ -1,0 +1,37 @@
+# DDoS Gotchi Backend - Production Requirements
+# Python 3.8+
+
+# FastAPI Backend
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+websockets>=12.0
+
+# Database
+sqlalchemy>=2.0.0
+alembic>=1.12.0
+aiosqlite>=0.19.0
+
+# Network Monitoring
+psutil>=5.9.0
+netifaces>=0.11.0
+requests>=2.28.0
+
+# Async Support
+aiofiles>=23.2.0
+python-socketio>=5.10.0
+
+# Data Processing
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Utilities
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# Monitoring
+prometheus-client>=0.18.0
+
+# CORS
+python-cors>=1.0.0
