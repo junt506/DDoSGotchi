@@ -26,9 +26,12 @@ try:
     from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
     from matplotlib.figure import Figure
     HAS_MATPLOTLIB = True
-except ImportError:
+    print("✅ matplotlib loaded successfully")
+except ImportError as e:
     HAS_MATPLOTLIB = False
-    print("⚠️  matplotlib not available - running without graphs")
+    print(f"⚠️  matplotlib not available - running without graphs")
+    print(f"   Import error: {e}")
+    print(f"   Try: pip3 install matplotlib (or pip install matplotlib)")
 
 
 # ASCII Art for Pwnagotchi
