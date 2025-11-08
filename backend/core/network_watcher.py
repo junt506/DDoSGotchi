@@ -57,25 +57,23 @@ class NetworkWatcher:
     def _get_network_hash(self) -> str:
         """Get a hash representing current network state"""
         try:
-            # Get routing table
+            # Get routing table (only the default route)
             result = subprocess.run(
-                ['ip', 'route'] if subprocess.run(['which', 'ip'], capture_output=True).returncode == 0
-                else ['route', '-n'],
+                ['ip', 'route', 'show', 'default'],
                 capture_output=True,
                 text=True,
                 timeout=2
             )
 
-            # Get interface status
+            # Get active network interfaces (only UP interfaces)
             interfaces = subprocess.run(
-                ['ip', 'addr'] if subprocess.run(['which', 'ip'], capture_output=True).returncode == 0
-                else ['ifconfig'],
+                ['ip', '-o', 'link', 'show', 'up'],
                 capture_output=True,
                 text=True,
                 timeout=2
             )
 
-            # Combine outputs and hash
+            # Only hash the relevant parts (routes and active interfaces, not stats)
             combined = result.stdout + interfaces.stdout
             return hashlib.md5(combined.encode()).hexdigest()
 
