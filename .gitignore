@@ -73,3 +73,11 @@ user_config.json
 # Attack data
 attacks.json
 network_stats.csv
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Node modules
+node_modules/
