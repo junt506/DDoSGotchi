@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion'
 import { RealtimeData } from '../hooks/useWebSocket'
+import { memo } from 'react'
 import StatsCard from './StatsCard'
 import LiveGraph from './LiveGraph'
 import GotchiPet from './GotchiPet'
@@ -8,7 +8,6 @@ import {
   Activity,
   Wifi,
   Clock,
-  AlertTriangle,
   TrendingUp,
   Network,
 } from 'lucide-react'
@@ -17,18 +16,13 @@ interface DashboardProps {
   data: RealtimeData
 }
 
-export default function Dashboard({ data }: DashboardProps) {
+function Dashboard({ data }: DashboardProps) {
   const { stats, attack_info, state } = data
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       {/* Left Column - Stats Cards */}
-      <motion.div
-        className="lg:col-span-8 space-y-6"
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+      <div className="lg:col-span-8 space-y-6">
         {/* Top Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           <StatsCard
@@ -118,22 +112,19 @@ export default function Dashboard({ data }: DashboardProps) {
 
         {/* Live Graphs */}
         <LiveGraph data={data} />
-      </motion.div>
+      </div>
 
       {/* Right Column - Gotchi Pet */}
-      <motion.div
-        className="lg:col-span-4"
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-      >
+      <div className="lg:col-span-4">
         <GotchiPet
           isAttack={attack_info.is_attack}
           state={state}
           anomalyScore={stats.anomaly_score}
           connected={stats.connected}
         />
-      </motion.div>
+      </div>
     </div>
   )
 }
+
+export default memo(Dashboard)
