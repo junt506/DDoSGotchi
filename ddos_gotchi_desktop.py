@@ -12,6 +12,7 @@ from threading import Thread
 from collections import deque
 from datetime import datetime
 import time
+import random
 
 # Add backend to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
@@ -34,30 +35,41 @@ except ImportError as e:
     print(f"   Try: pip3 install matplotlib (or pip install matplotlib)")
 
 
-# ASCII Art for Pwnagotchi
-PWNAGOTCHI_NORMAL = r"""
-    ▄▀▄     ▄▀▄
-   ▄█░░▀▀▀▀▀░░█▄
- ▄▀░░░░░░░░░░░▀▄
- █░░█░░░░░░█░░░█
- █░░░▀█▀░▀█▀░░░█
- █░░░░░░░░░░░░░█
-  ▀▄░░ ═══ ░░▄▀
-    ▀▀▀▀▀▀▀▀▀
-  [ ALL  GOOD ]
-"""
+# Pwnagotchi Faces (using emoji-style)
+GOTCHI_HAPPY = "(◕‿‿◕)"
+GOTCHI_INTENSE = "(⌐■_■)"
+GOTCHI_COOL = "(◕‿◕)✧"
+GOTCHI_EXCITED = "ヽ(◕‿‿◕)ﾉ"
+GOTCHI_SLEEPING = "(◕.◕)"
+GOTCHI_BROKEN = "(✖╭╮✖)"
+GOTCHI_DEBUG = "(◕~◕)"
+GOTCHI_UPLOAD = "(◕‿‿◕)↗"
+GOTCHI_ATTACK = "(╬ಠ益ಠ)"
 
-PWNAGOTCHI_ATTACK = r"""
-    ▄▀▄     ▄▀▄
-   ▄█░░▀▀▀▀▀░░█▄
- ▄▀░░░░░░░░░░░▀▄
- █░░X░░░░░░X░░░█
- █░░░▄█▄░▄█▄░░░█
- █░░░░░░░░░░░░░█
-  ▀▄░░░▀▀▀░░░▄▀
-    ▀▀▀▀▀▀▀▀▀
-  [ UNDER ATTACK! ]
-"""
+# Pwnagotchi-style Quotes
+QUOTES_NORMAL = [
+    "monitoring packets...",
+    "sniffing networks...",
+    "analyzing traffic...",
+    "watching connections...",
+    "all systems operational",
+    "network looks clean",
+    "keeping watch...",
+    "running diagnostics...",
+    "scanning for threats...",
+    "everything nominal",
+]
+
+QUOTES_ATTACK = [
+    "ATTACK DETECTED!",
+    "network under siege!",
+    "defensive mode activated",
+    "logging attack patterns",
+    "analyzing threat vectors",
+    "countermeasures active",
+    "threat level: HIGH",
+    "recording anomalies",
+]
 
 
 class RetroTheme:
@@ -87,11 +99,12 @@ class DDoSGotchiApp:
 
         # Data storage
         self.latency_data = deque(maxlen=100)
-        self.packet_loss_data = deque(maxlen=100)
+        self.packet_loss_data = deque(100)
         self.time_data = deque(maxlen=100)
 
-        # Connection log
-        self.connection_log = deque(maxlen=100)
+        # Gotchi state
+        self.current_face = GOTCHI_HAPPY
+        self.current_quote = random.choice(QUOTES_NORMAL)
 
         # State
         self.running = True
@@ -132,20 +145,37 @@ class DDoSGotchiApp:
         top_section = tk.Frame(main_frame, bg=RetroTheme.BG)
         top_section.pack(fill=tk.BOTH, padx=10, pady=5)
 
-        # Left: ASCII Pwnagotchi
+        # Left: Pwnagotchi Face
         ascii_frame = tk.Frame(top_section, bg=RetroTheme.BG, highlightbackground=RetroTheme.BORDER,
                                highlightthickness=1)
         ascii_frame.pack(side=tk.LEFT, padx=(0, 10))
 
-        self.ascii_label = tk.Label(
+        tk.Label(
             ascii_frame,
-            text=PWNAGOTCHI_NORMAL,
-            font=ascii_font,
+            text="PWNAGOTCHI",
+            font=title_font,
+            fg=RetroTheme.HIGHLIGHT,
+            bg=RetroTheme.BG
+        ).pack(pady=(10, 5))
+
+        self.face_label = tk.Label(
+            ascii_frame,
+            text=GOTCHI_HAPPY,
+            font=('Arial', 60),
             fg=RetroTheme.TEXT,
-            bg=RetroTheme.BG,
-            justify=tk.LEFT
+            bg=RetroTheme.BG
         )
-        self.ascii_label.pack(padx=10, pady=10)
+        self.face_label.pack(pady=10)
+
+        self.quote_label = tk.Label(
+            ascii_frame,
+            text="monitoring packets...",
+            font=retro_font,
+            fg=RetroTheme.TEXT_DIM,
+            bg=RetroTheme.BG,
+            wraplength=200
+        )
+        self.quote_label.pack(pady=(0, 10))
 
         # Right: Network Stats
         stats_frame = tk.Frame(top_section, bg=RetroTheme.BG, highlightbackground=RetroTheme.BORDER,
@@ -308,6 +338,7 @@ class DDoSGotchiApp:
         last_state = None
         connection_check_counter = 0
         seen_ips = set()  # Track IPs we've already logged
+        quote_change_counter = 0
 
         while self.running:
             try:
@@ -319,14 +350,25 @@ class DDoSGotchiApp:
                 self.latest_stats = stats
                 self.latest_attack = attack_info
 
+                # Update quotes every 5 seconds
+                quote_change_counter += 1
+                if quote_change_counter % 5 == 0:
+                    is_attack = attack_info.get('attack_detected', False)
+                    if is_attack:
+                        self.current_quote = random.choice(QUOTES_ATTACK)
+                    else:
+                        self.current_quote = random.choice(QUOTES_NORMAL)
+
                 # Log state changes
                 current_state = "attack" if attack_info.get('attack_detected') else "normal"
                 if current_state != last_state:
                     if current_state == "attack":
                         self._log(f"⚠️  ATTACK DETECTED: {attack_info.get('attack_type', 'Unknown')}",
                                  RetroTheme.DANGER)
+                        self.current_face = GOTCHI_ATTACK
                     else:
                         self._log("✓ Network normal", RetroTheme.TEXT)
+                        self.current_face = random.choice([GOTCHI_HAPPY, GOTCHI_COOL, GOTCHI_EXCITED])
                     last_state = current_state
 
                 # Update graph data
@@ -335,16 +377,17 @@ class DDoSGotchiApp:
                     self.latency_data.append(max(0, latency) if latency > 0 else 0)
                     self.packet_loss_data.append(stats.get('packet_loss', 0))
 
-                # Log ALL network connections (every 2 seconds)
+                # Log ALL network connections (every 1 second for faster updates)
                 connection_check_counter += 1
-                if connection_check_counter % 2 == 0:
+                if connection_check_counter % 1 == 0:
                     try:
                         import psutil
-                        connections = psutil.net_connections(kind='inet')
+                        # Get ALL connections (not just established)
+                        connections = psutil.net_connections(kind='all')
                         current_connections = set()
 
                         for conn in connections:
-                            # Only log established connections with remote address
+                            # Log ESTABLISHED connections with remote address
                             if conn.status == 'ESTABLISHED' and conn.raddr:
                                 remote_ip = conn.raddr.ip
                                 remote_port = conn.raddr.port
@@ -357,13 +400,17 @@ class DDoSGotchiApp:
                                 # Only log NEW connections (not seen before)
                                 if conn_id not in seen_ips:
                                     seen_ips.add(conn_id)
-                                    self._log(f"→ {remote_ip}:{remote_port} → :{local_port}", RetroTheme.TEXT)
+                                    # Check if it's a local IP
+                                    if remote_ip.startswith(('192.168.', '10.', '172.')):
+                                        self._log(f"→ LOCAL {remote_ip}:{remote_port} → :{local_port}", RetroTheme.HIGHLIGHT)
+                                    else:
+                                        self._log(f"→ {remote_ip}:{remote_port} → :{local_port}", RetroTheme.TEXT)
 
-                        # Clean up old connections (no longer active)
-                        # Reset seen_ips every 30 seconds to allow re-logging reconnections
-                        if connection_check_counter % 30 == 0:
+                        # Reset seen_ips every 15 seconds (faster refresh)
+                        if connection_check_counter % 15 == 0:
                             seen_ips.clear()
-                            self._log(f"--- Active connections: {len(current_connections)} ---", RetroTheme.TEXT_DIM)
+                            if len(current_connections) > 0:
+                                self._log(f"--- {len(current_connections)} active connections ---", RetroTheme.TEXT_DIM)
 
                     except Exception as e:
                         # Only log errors if they're not permission-related
@@ -388,11 +435,16 @@ class DDoSGotchiApp:
 
                 is_attack = attack.get('attack_detected', False)
 
-                # Update ASCII art
+                # Update Pwnagotchi face and quote
+                self.face_label.config(text=self.current_face)
+                self.quote_label.config(text=self.current_quote)
+
                 if is_attack:
-                    self.ascii_label.config(text=PWNAGOTCHI_ATTACK, fg=RetroTheme.DANGER)
+                    self.face_label.config(fg=RetroTheme.DANGER)
+                    self.quote_label.config(fg=RetroTheme.DANGER)
                 else:
-                    self.ascii_label.config(text=PWNAGOTCHI_NORMAL, fg=RetroTheme.TEXT)
+                    self.face_label.config(fg=RetroTheme.TEXT)
+                    self.quote_label.config(fg=RetroTheme.TEXT_DIM)
 
                 # Update stats
                 self.stats_text.config(state=tk.NORMAL)
