@@ -32,8 +32,18 @@ class AttackDetector:
                 'confidence': 0
             }
 
-        latency = stats.get('avg_latency', 0)
+        latency = stats.get('avg_latency', -1)
         packet_loss = stats.get('avg_packet_loss', 0)
+
+        # Handle initial state (no data yet)
+        if latency < 0:
+            return {
+                'state': 'happy',
+                'attack_detected': False,
+                'attack_type': None,
+                'anomaly_score': 0,
+                'confidence': 0
+            }
 
         # Determine state
         state = self._determine_state(latency, packet_loss)
@@ -88,7 +98,7 @@ class AttackDetector:
         return None
 
     def _calculate_anomaly_score(self, stats: Dict) -> float:
-        """Calculate anomaly score"""
+        """Calculate anomaly score (0-100 scale)"""
         score = 0.0
 
         baseline_lat = stats.get('baseline_latency', 0)
@@ -96,16 +106,35 @@ class AttackDetector:
         baseline_loss = stats.get('baseline_packet_loss', 0)
         current_loss = stats.get('avg_packet_loss', 0)
 
-        if baseline_lat > 0:
-            lat_deviation = (current_lat - baseline_lat) / baseline_lat
-            score += min(lat_deviation * 30, 50)
+        # Handle invalid values
+        if current_lat < 0:
+            return 0.0
 
-        if baseline_loss >= 0:
-            loss_deviation = current_loss - baseline_loss
-            score += min(loss_deviation * 2, 50)
+        # Calculate based on absolute values if no baseline yet
+        if baseline_lat <= 0:
+            # No baseline yet, use absolute thresholds
+            if current_lat > 100:
+                score += 50
+            elif current_lat > 50:
+                score += 25
+            elif current_lat > 20:
+                score += 10
+        else:
+            # Compare to baseline
+            lat_deviation = (current_lat - baseline_lat) / baseline_lat
+            if lat_deviation > 0:  # Only count increases
+                score += min(lat_deviation * 30, 50)
+
+        # Packet loss scoring
+        if current_loss > 10:
+            score += 50
+        elif current_loss > 5:
+            score += 25
+        elif current_loss > 1:
+            score += 10
 
         self.anomaly_scores.append(score)
-        return score
+        return min(score, 100.0)
 
     def _calculate_confidence(self, latency: float, packet_loss: float) -> float:
         """Calculate detection confidence"""
