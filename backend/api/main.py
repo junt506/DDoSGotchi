@@ -117,74 +117,65 @@ manager = ConnectionManager()
 @app.websocket("/ws/realtime")
 async def websocket_realtime(websocket: WebSocket):
     """Real-time data stream via WebSocket"""
-    await manager.connect(websocket)
+    await websocket.accept()
+    manager.active_connections.append(websocket)
+    print(f"✅ WebSocket connected. Total: {len(manager.active_connections)}")
 
     try:
-        # Send initial connection message
-        await websocket.send_json({"type": "connected", "message": "WebSocket connected"})
-        print(f"📤 Sent initial message to client")
-
         update_count = 0
         while True:
             update_count += 1
 
-            # Only check packet loss every 5 seconds (slower operation)
-            include_packet_loss = (update_count % 5 == 0)
+            # Only check packet loss every 10 seconds (it's slow)
+            include_packet_loss = (update_count % 10 == 0)
 
-            # Get current stats (skip packet loss for faster updates)
+            # Get stats with minimal blocking
             stats = monitor_state['network_monitor'].get_current_stats(include_packet_loss=include_packet_loss)
             attack_info = monitor_state['attack_detector'].detect(stats)
 
-            # Convert attack_info to match frontend expectations
-            attack_message = {
-                'is_attack': attack_info.get('attack_detected', False),
-                'attack_type': attack_info.get('attack_type'),
-                'confidence': float(attack_info.get('confidence', 0)),
-                'severity': 'low',  # Default severity
-                'anomaly_score': float(attack_info.get('anomaly_score', 0))
-            }
-
-            # Determine severity based on confidence
-            confidence = attack_message['confidence']
+            # Build simple message
+            confidence = attack_info.get('confidence', 0)
+            severity = 'low'
             if confidence > 0.8:
-                attack_message['severity'] = 'critical'
+                severity = 'critical'
             elif confidence > 0.6:
-                attack_message['severity'] = 'high'
+                severity = 'high'
             elif confidence > 0.4:
-                attack_message['severity'] = 'medium'
+                severity = 'medium'
 
-            # Prepare message with explicit type conversions
             message = {
                 'timestamp': datetime.now().isoformat(),
                 'stats': {
-                    'connected': bool(stats.get('connected', False)),
-                    'latency': float(stats.get('latency', -1)),
-                    'packet_loss': float(stats.get('packet_loss', 0)),
-                    'anomaly_score': float(attack_info.get('anomaly_score', 0)),
-                    'ip_address': str(stats.get('ip_address', 'N/A')),
-                    'gateway': str(stats.get('gateway', 'N/A')),
-                    'network': str(stats.get('network', 'N/A')),
-                    'ssid': str(stats.get('ssid', 'N/A'))
+                    'connected': stats.get('connected', False),
+                    'latency': stats.get('latency', -1),
+                    'packet_loss': stats.get('packet_loss', 0),
+                    'anomaly_score': attack_info.get('anomaly_score', 0),
+                    'ip_address': stats.get('ip_address', 'N/A'),
+                    'gateway': stats.get('gateway', 'N/A'),
+                    'network': stats.get('network', 'N/A'),
+                    'ssid': stats.get('ssid', 'N/A')
                 },
-                'attack_info': attack_message,
-                'state': str(attack_info.get('state', 'unknown'))
+                'attack_info': {
+                    'is_attack': attack_info.get('attack_detected', False),
+                    'attack_type': attack_info.get('attack_type'),
+                    'confidence': confidence,
+                    'severity': severity,
+                    'anomaly_score': attack_info.get('anomaly_score', 0)
+                },
+                'state': attack_info.get('state', 'unknown')
             }
 
-            # Send to client - if this fails, break the loop
             await websocket.send_json(message)
-
-            # Wait before next update
-            await asyncio.sleep(1)
+            await asyncio.sleep(2)  # Update every 2 seconds instead of 1
 
     except WebSocketDisconnect:
-        manager.disconnect(websocket)
+        pass
     except Exception as e:
-        # Any exception means connection is broken - clean up and exit
-        print(f"WebSocket closed: {type(e).__name__}")
-        try:
-            manager.disconnect(websocket)
-        except:
-            pass
+        print(f"WebSocket error: {e}")
+    finally:
+        if websocket in manager.active_connections:
+            manager.active_connections.remove(websocket)
+        print(f"❌ WebSocket disconnected. Total: {len(manager.active_connections)}")
 
 
 # ============================================================================
