@@ -1,10 +1,11 @@
 {
     "network": {
-        "target_network": "45.33.0",
-        "gateway": "45.33.0.1",
-        "target_ssid": "Mirai <3",
+        "target_network": "auto",
+        "gateway": "auto",
+        "target_ssid": "Auto-Detect",
         "ping_count": 5,
-        "ping_interval": 2
+        "ping_interval": 2,
+        "additional_gateways": []
     },
     "thresholds": {
         "happy": {
@@ -25,8 +26,8 @@
         }
     },
     "ui": {
-        "window_width": 900,
-        "window_height": 600,
+        "window_width": 1280,
+        "window_height": 800,
         "fps": 30,
         "quote_interval_seconds": 15,
         "matrix_rain_enabled": true,
@@ -46,19 +47,36 @@
         "smoothing_window": 5,
         "history_size": 10,
         "check_interval_seconds": 2,
-        "connection_timeout": 1
+        "connection_timeout": 1,
+        "baseline_learning_period": 300
     },
     "features": {
         "sound_effects": false,
         "log_attacks": true,
-        "export_stats": false,
+        "export_stats": true,
+        "desktop_notifications": true,
+        "discord_webhooks": false,
         "email_alerts": false
     },
-    "custom_quotes": {
-        "happy": [],
-        "alert": [],
-        "under_attack": [],
-        "stressed": [],
-        "disconnected": []
+    "alerts": {
+        "discord_webhook_url": "",
+        "email_smtp_server": "",
+        "email_smtp_port": 587,
+        "email_from": "",
+        "email_password": "",
+        "email_to": "",
+        "alert_cooldown_seconds": 300
+    },
+    "logging": {
+        "log_directory": "logs",
+        "attack_log_file": "attacks.json",
+        "stats_export_file": "stats.csv",
+        "max_log_size_mb": 100
+    },
+    "detection": {
+        "enable_baseline_learning": true,
+        "enable_attack_classification": true,
+        "enable_connection_tracking": true,
+        "suspicious_connection_threshold": 100
     }
 }
