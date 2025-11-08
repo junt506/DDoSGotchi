@@ -4,8 +4,8 @@ Network Watcher - Detects network changes and triggers reconfiguration
 
 import threading
 import time
-import subprocess
 import hashlib
+import netifaces
 from typing import Optional
 
 
@@ -55,26 +55,24 @@ class NetworkWatcher:
             time.sleep(self.check_interval)
 
     def _get_network_hash(self) -> str:
-        """Get a hash representing current network state"""
+        """Get a hash representing current network state using netifaces"""
         try:
-            # Get routing table (only the default route)
-            result = subprocess.run(
-                ['ip', 'route', 'show', 'default'],
-                capture_output=True,
-                text=True,
-                timeout=2
-            )
+            # Get default gateway
+            gateways = netifaces.gateways()
+            default_gw = gateways.get('default', {}).get(netifaces.AF_INET, [''])[0]
 
-            # Get active network interfaces (only UP interfaces)
-            interfaces = subprocess.run(
-                ['ip', '-o', 'link', 'show', 'up'],
-                capture_output=True,
-                text=True,
-                timeout=2
-            )
+            # Get list of interfaces with addresses
+            interfaces_data = []
+            for iface in netifaces.interfaces():
+                if iface != 'lo':  # Skip loopback
+                    addrs = netifaces.ifaddresses(iface)
+                    if netifaces.AF_INET in addrs:
+                        # Only store interface name and IP (not changing stats)
+                        ip = addrs[netifaces.AF_INET][0].get('addr', '')
+                        interfaces_data.append(f"{iface}:{ip}")
 
-            # Only hash the relevant parts (routes and active interfaces, not stats)
-            combined = result.stdout + interfaces.stdout
+            # Combine gateway and interface info
+            combined = f"{default_gw}|{'|'.join(sorted(interfaces_data))}"
             return hashlib.md5(combined.encode()).hexdigest()
 
         except Exception as e:

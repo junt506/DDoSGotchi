@@ -122,18 +122,12 @@ async def websocket_realtime(websocket: WebSocket):
     print(f"✅ WebSocket connected. Total: {len(manager.active_connections)}")
 
     try:
-        update_count = 0
         while True:
-            update_count += 1
-
-            # Only check packet loss every 10 seconds (it's slow)
-            include_packet_loss = (update_count % 10 == 0)
-
-            # Get stats with minimal blocking
-            stats = monitor_state['network_monitor'].get_current_stats(include_packet_loss=include_packet_loss)
+            # Get cached stats (non-blocking, instant)
+            stats = monitor_state['network_monitor'].get_current_stats()
             attack_info = monitor_state['attack_detector'].detect(stats)
 
-            # Build simple message
+            # Determine severity
             confidence = attack_info.get('confidence', 0)
             severity = 'low'
             if confidence > 0.8:
@@ -143,6 +137,7 @@ async def websocket_realtime(websocket: WebSocket):
             elif confidence > 0.4:
                 severity = 'medium'
 
+            # Build message
             message = {
                 'timestamp': datetime.now().isoformat(),
                 'stats': {
@@ -166,12 +161,12 @@ async def websocket_realtime(websocket: WebSocket):
             }
 
             await websocket.send_json(message)
-            await asyncio.sleep(2)  # Update every 2 seconds instead of 1
+            await asyncio.sleep(1)  # Send updates every second (stats update in background)
 
     except WebSocketDisconnect:
         pass
     except Exception as e:
-        print(f"WebSocket error: {e}")
+        print(f"❌ WebSocket error: {e}")
     finally:
         if websocket in manager.active_connections:
             manager.active_connections.remove(websocket)
