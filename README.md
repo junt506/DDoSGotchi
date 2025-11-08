@@ -7,24 +7,6 @@ A desktop application that monitors your network for DDoS attacks, featuring a c
 ![Version](https://img.shields.io/badge/version-3.0-green)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
-## 🎯 Two Versions Available
-
-### 🖥️ Electron Version (Recommended) - **NEW!**
-- **Retro CRT terminal aesthetic** with green phosphor glow effect
-- **3D rotating wireframe sphere** animation
-- **Modern web technologies** wrapped in a native desktop app
-- **Scanline effects** and vintage monitor look
-- Same powerful DDoS detection as desktop version
-
-**Launch:** `./run-electron.sh`
-
-### 🐍 Desktop Version (Python/Tkinter)
-- **Classic desktop GUI** with Tkinter
-- **Matplotlib graphs** for metrics
-- **Lightweight** - pure Python implementation
-
-**Launch:** `./run-desktop.sh`
-
 ## ✨ Features
 
 ### 🎮 Pwnagotchi Interface
@@ -50,64 +32,7 @@ A desktop application that monitors your network for DDoS attacks, featuring a c
 
 ## 🚀 Quick Start
 
-### Electron Version (Recommended)
-
-**Prerequisites:**
-- Python 3.7+
-- Node.js 16+ and npm
-- Linux, macOS, or Windows
-
-**Installation:**
-
-1. **Clone the repository**
-```bash
-git clone https://github.com/yourusername/DDoSGotchi.git
-cd DDoSGotchi
-```
-
-2. **Install Node.js** (if not already installed)
-```bash
-# Fedora
-sudo dnf install nodejs npm
-
-# Ubuntu/Debian
-sudo apt-get install nodejs npm
-
-# macOS
-brew install node
-```
-
-3. **Run the launcher** (auto-installs all dependencies)
-```bash
-./run-electron.sh
-```
-
-The launcher will:
-- Install Python dependencies (psutil, netifaces, websockets)
-- Install Electron and Three.js via npm
-- Start the Python backend server
-- Launch the Electron app with the retro CRT interface
-
-**Manual installation:**
-```bash
-# Install Python dependencies
-pip3 install -r requirements-electron.txt
-
-# Install Electron dependencies
-cd electron && npm install && cd ..
-
-# Start backend
-python3 backend_electron.py &
-
-# Start Electron app
-cd electron && npm start
-```
-
----
-
-### Desktop Version (Python/Tkinter)
-
-**Prerequisites:**
+### Prerequisites
 
 **System Packages** (required for graphs):
 ```bash
@@ -121,9 +46,9 @@ sudo apt-get install python3-tk python3-pil.imagetk
 # tkinter comes with Python - no additional packages needed
 ```
 
-**Installation:**
+### Installation
 
-1. **Clone the repository** (if not already done)
+1. **Clone the repository**
 ```bash
 git clone https://github.com/yourusername/DDoSGotchi.git
 cd DDoSGotchi
@@ -187,60 +112,6 @@ The live log shows all network activity:
 
 ## 🎯 What You'll See
 
-### Electron Version (Retro CRT Terminal)
-
-```
-████████████████████████████████████████████████████
-█                                                  █
-█    [3D Rotating Wireframe Sphere Animation]     █
-█                                                  █
-█              (◕‿‿◕)                              █
-█                                                  █
-█         "monitoring packets..."                  █
-█                                                  █
-█    ════════════════════════════════════════     █
-█                                                  █
-█    [ NETWORK STATUS ]                            █
-█                                                  █
-█    Connections:      12                          █
-█    Unique IPs:       8                           █
-█    Latency:          1.2ms                       █
-█    Packet Loss:      0%                          █
-█    Threat Level:     NORMAL                      █
-█                                                  █
-█    ════════════════════════════════════════     █
-█                                                  █
-█    [ LIVE CONNECTION LOG ]                       █
-█                                                  █
-█    → LOCAL 192.168.0.100:54321 → :443           █
-█    → PUBLIC 142.250.185.46:443 → :54322         █
-█    → PUBLIC 52.109.88.123:443 → :54323          █
-█                                                  █
-█    ════════════════════════════════════════     █
-█                                                  █
-█    [ NETWORK METRICS ]                           █
-█                                                  █
-█    [Real-time Latency & Packet Loss Graph]      █
-█                                                  █
-█    ════════════════════════════════════════     █
-█                                                  █
-█    [► monitoring active]  [⛶ fullscreen]        █
-█                                                  █
-████████████████████████████████████████████████████
-```
-
-**Visual Features:**
-- Green phosphor glow effect (like old CRT monitors)
-- Scanline overlay for authentic retro feel
-- VT323 monospace font
-- Text shadow and blur effects
-- 3D wireframe sphere rotating in real-time
-- Fullscreen mode (click anywhere or press button)
-
----
-
-### Desktop Version (Python/Tkinter)
-
 ```
 ┌─────────────────────────────────────────────┐
 │  ║▌│█║▌│ DDoS GOTCHI v3.0 │▌║█│▌║           │
@@ -263,36 +134,7 @@ The live log shows all network activity:
 
 ## 🔧 Architecture
 
-### Electron Version
-
-**Frontend (electron/):**
-- **`main.js`** - Electron main process (window management)
-- **`index.html`** - CRT-styled UI layout
-- **`style.css`** - Retro terminal styling with glow effects
-- **`renderer.js`** - Frontend logic
-  - Three.js 3D wireframe sphere
-  - WebSocket client for real-time data
-  - Graph rendering on canvas
-  - Connection log display
-
-**Backend:**
-- **`backend_electron.py`** - WebSocket server
-  - Real-time network monitoring with psutil
-  - DDoS attack detection
-  - Latency and packet loss measurement
-  - WebSocket broadcasting to Electron frontend
-
-**Communication:**
-- WebSocket connection on `ws://localhost:8765`
-- JSON data format
-- Updates every 1 second
-- Auto-reconnection on disconnect
-
----
-
-### Desktop Version
-
-**Backend Components:**
+### Backend Components
 
 - **`backend/core/network_monitor.py`** - Network monitoring with background thread
   - Socket-based latency measurement (no ping required)
@@ -308,7 +150,7 @@ The live log shows all network activity:
   - Monitors for network switches
   - Auto-reconfiguration
 
-**Desktop App:**
+### Desktop App
 
 - **`ddos_gotchi_desktop.py`** - Main GUI application
   - Tkinter-based interface
@@ -317,88 +159,18 @@ The live log shows all network activity:
 
 ## 📋 Requirements
 
-### Electron Version
-
-**Node.js:**
-- Node.js 16+
-- npm (comes with Node.js)
-
-**Python Packages:**
-- `netifaces>=0.11.0` - Network interface detection
-- `psutil>=5.9.0` - System monitoring & connections
-- `websockets>=12.0` - WebSocket server for frontend communication
-
-**JavaScript Packages** (auto-installed):
-- `electron` - Desktop app framework
-- `three` - 3D graphics library
-
----
-
-### Desktop Version
-
-**Python Packages:**
+### Python Packages
 - `netifaces>=0.11.0` - Network interface detection
 - `psutil>=5.9.0` - System monitoring & connections
 - `matplotlib>=3.5.0` - Real-time graphs
 
-**System Packages:**
+### System Packages
 - `python3-tkinter` - GUI framework
 - `python3-pillow-tk` - Image support for matplotlib
 
 ## 🐛 Troubleshooting
 
-### Electron Version
-
-**"Cannot connect to backend" / WebSocket errors?**
-```bash
-# Make sure backend is running
-python3 backend_electron.py
-
-# Check if port 8765 is available
-netstat -tuln | grep 8765
-
-# Try restarting both processes
-./run-electron.sh
-```
-
-**"Node.js not found" / "npm not found"?**
-```bash
-# Fedora
-sudo dnf install nodejs npm
-
-# Ubuntu/Debian
-sudo apt-get install nodejs npm
-
-# macOS
-brew install node
-
-# Verify installation
-node --version
-npm --version
-```
-
-**Electron app crashes or won't start?**
-```bash
-# Reinstall Electron dependencies
-cd electron
-rm -rf node_modules package-lock.json
-npm install
-cd ..
-
-# Try again
-./run-electron.sh
-```
-
-**No data showing in the app?**
-- Backend might not be running - check terminal output
-- Firewall might be blocking localhost:8765
-- Try running backend manually: `python3 backend_electron.py`
-
----
-
-### Desktop Version
-
-**Graphs not showing?**
+### Graphs not showing?
 ```bash
 # Install matplotlib support
 pip3 install matplotlib
@@ -410,12 +182,12 @@ sudo dnf install python3-tkinter python3-pillow-tk
 sudo apt-get install python3-tk python3-pil.imagetk
 ```
 
-**No connections in log?**
+### No connections in log?
 - Run with sudo/admin privileges to see all connections
 - Check firewall settings
 - Make sure psutil is installed: `pip3 install psutil`
 
-**Connection log stops updating?**
+### Connection log stops updating?
 - It refreshes every 15 seconds (clears seen IPs)
 - New connections appear immediately
 - Connection count shown every 15 seconds
