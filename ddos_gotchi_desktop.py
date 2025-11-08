@@ -265,7 +265,8 @@ class DDoSGotchiApp:
             fg=RetroTheme.TEXT,
             bg=RetroTheme.BG,
             insertbackground=RetroTheme.TEXT,
-            relief=tk.FLAT
+            relief=tk.FLAT,
+            state=tk.DISABLED  # Make read-only
         )
         self.log_text.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
 
@@ -283,7 +284,11 @@ class DDoSGotchiApp:
         """Add message to log"""
         timestamp = datetime.now().strftime("%H:%M:%S")
         log_line = f"[{timestamp}] {message}\n"
+
+        # Temporarily enable editing to insert
+        self.log_text.config(state=tk.NORMAL)
         self.log_text.insert(tk.END, log_line)
+
         if color:
             # Color the last line
             line_start = self.log_text.index("end-2c linestart")
@@ -291,7 +296,9 @@ class DDoSGotchiApp:
             tag_name = f"color_{color}"
             self.log_text.tag_add(tag_name, line_start, line_end)
             self.log_text.tag_config(tag_name, foreground=color)
+
         self.log_text.see(tk.END)  # Auto-scroll
+        self.log_text.config(state=tk.DISABLED)  # Make read-only again
 
     def _monitor_loop(self):
         """Background monitoring thread"""
@@ -334,6 +341,7 @@ class DDoSGotchiApp:
                     try:
                         import psutil
                         connections = psutil.net_connections(kind='inet')
+                        current_connections = set()
 
                         for conn in connections:
                             # Only log established connections with remote address
@@ -344,17 +352,23 @@ class DDoSGotchiApp:
 
                                 # Create unique identifier for this connection
                                 conn_id = f"{remote_ip}:{remote_port}"
+                                current_connections.add(conn_id)
 
-                                # Only log new connections
+                                # Only log NEW connections (not seen before)
                                 if conn_id not in seen_ips:
                                     seen_ips.add(conn_id)
                                     self._log(f"→ {remote_ip}:{remote_port} → :{local_port}", RetroTheme.TEXT)
 
-                                    # Keep seen_ips from growing too large
-                                    if len(seen_ips) > 100:
-                                        seen_ips.clear()
+                        # Clean up old connections (no longer active)
+                        # Reset seen_ips every 30 seconds to allow re-logging reconnections
+                        if connection_check_counter % 30 == 0:
+                            seen_ips.clear()
+                            self._log(f"--- Active connections: {len(current_connections)} ---", RetroTheme.TEXT_DIM)
+
                     except Exception as e:
-                        pass  # Silently ignore connection enumeration errors
+                        # Only log errors if they're not permission-related
+                        if "permission" not in str(e).lower():
+                            self._log(f"✗ Connection check error: {e}", RetroTheme.DANGER)
 
                 time.sleep(1)
 
