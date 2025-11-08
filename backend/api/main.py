@@ -121,20 +121,53 @@ async def websocket_realtime(websocket: WebSocket):
 
     try:
         while True:
-            # Get current stats
-            stats = monitor_state['network_monitor'].get_current_stats()
-            attack_info = monitor_state['attack_detector'].detect(stats)
+            try:
+                # Get current stats
+                stats = monitor_state['network_monitor'].get_current_stats()
+                attack_info = monitor_state['attack_detector'].detect(stats)
 
-            # Prepare message
-            message = {
-                'timestamp': datetime.now().isoformat(),
-                'stats': stats,
-                'attack_info': attack_info,
-                'state': monitor_state['network_monitor'].current_state
-            }
+                # Convert attack_info to match frontend expectations
+                attack_message = {
+                    'is_attack': attack_info.get('attack_detected', False),
+                    'attack_type': attack_info.get('attack_type'),
+                    'confidence': float(attack_info.get('confidence', 0)),
+                    'severity': 'low',  # Default severity
+                    'anomaly_score': float(attack_info.get('anomaly_score', 0))
+                }
 
-            # Send to client
-            await websocket.send_json(message)
+                # Determine severity based on confidence
+                confidence = attack_message['confidence']
+                if confidence > 0.8:
+                    attack_message['severity'] = 'critical'
+                elif confidence > 0.6:
+                    attack_message['severity'] = 'high'
+                elif confidence > 0.4:
+                    attack_message['severity'] = 'medium'
+
+                # Prepare message with explicit type conversions
+                message = {
+                    'timestamp': datetime.now().isoformat(),
+                    'stats': {
+                        'connected': bool(stats.get('connected', False)),
+                        'latency': float(stats.get('latency', -1)),
+                        'packet_loss': float(stats.get('packet_loss', 0)),
+                        'anomaly_score': float(attack_info.get('anomaly_score', 0)),
+                        'ip_address': str(stats.get('ip_address', 'N/A')),
+                        'gateway': str(stats.get('gateway', 'N/A')),
+                        'network': str(stats.get('network', 'N/A')),
+                        'ssid': str(stats.get('ssid', 'N/A'))
+                    },
+                    'attack_info': attack_message,
+                    'state': str(attack_info.get('state', 'unknown'))
+                }
+
+                # Send to client
+                await websocket.send_json(message)
+
+            except Exception as e:
+                print(f"❌ Error preparing WebSocket message: {e}")
+                import traceback
+                traceback.print_exc()
 
             # Wait before next update
             await asyncio.sleep(1)
@@ -142,8 +175,13 @@ async def websocket_realtime(websocket: WebSocket):
     except WebSocketDisconnect:
         manager.disconnect(websocket)
     except Exception as e:
-        print(f"WebSocket error: {e}")
-        manager.disconnect(websocket)
+        print(f"❌ WebSocket connection error: {e}")
+        import traceback
+        traceback.print_exc()
+        try:
+            manager.disconnect(websocket)
+        except:
+            pass
 
 
 # ============================================================================
