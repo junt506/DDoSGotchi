@@ -177,7 +177,7 @@ class DDoSGotchiApp:
 
             tk.Label(
                 graph_frame,
-                text=">>> REAL-TIME METRICS",
+                text=">>> REAL-TIME METRICS (LIVE GRAPHS)",
                 font=title_font,
                 fg=RetroTheme.HIGHLIGHT,
                 bg=RetroTheme.BG
@@ -220,6 +220,27 @@ class DDoSGotchiApp:
             self.canvas = FigureCanvasTkAgg(self.fig, master=graph_frame)
             self.canvas.draw()
             self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        else:
+            # Show message if matplotlib not installed
+            no_graph_frame = tk.Frame(main_frame, bg=RetroTheme.BG, highlightbackground=RetroTheme.BORDER,
+                                      highlightthickness=1)
+            no_graph_frame.pack(fill=tk.X, padx=10, pady=5)
+
+            tk.Label(
+                no_graph_frame,
+                text=">>> GRAPHS DISABLED",
+                font=title_font,
+                fg=RetroTheme.WARNING,
+                bg=RetroTheme.BG
+            ).pack(anchor=tk.W, padx=10, pady=(5, 0))
+
+            tk.Label(
+                no_graph_frame,
+                text="Install matplotlib for live graphs: pip install matplotlib",
+                font=retro_font,
+                fg=RetroTheme.TEXT_DIM,
+                bg=RetroTheme.BG
+            ).pack(anchor=tk.W, padx=10, pady=(0, 10))
 
         # Bottom: Live Connection Log
         log_frame = tk.Frame(main_frame, bg=RetroTheme.BG, highlightbackground=RetroTheme.BORDER,
@@ -272,10 +293,11 @@ class DDoSGotchiApp:
     def _monitor_loop(self):
         """Background monitoring thread"""
         self._log("System initialized", RetroTheme.HIGHLIGHT)
-        self._log(f"Monitoring gateway: Detecting...", RetroTheme.TEXT)
+        self._log(f"Monitoring all network connections...", RetroTheme.TEXT)
 
         last_state = None
         connection_check_counter = 0
+        seen_ips = set()  # Track IPs we've already logged
 
         while self.running:
             try:
@@ -303,13 +325,33 @@ class DDoSGotchiApp:
                     self.latency_data.append(max(0, latency) if latency > 0 else 0)
                     self.packet_loss_data.append(stats.get('packet_loss', 0))
 
-                # Log network activity every 10 seconds
+                # Log ALL network connections (every 2 seconds)
                 connection_check_counter += 1
-                if connection_check_counter % 10 == 0:
-                    gateway = stats.get('gateway', 'N/A')
-                    latency = stats.get('latency', -1)
-                    if latency > 0:
-                        self._log(f"→ {gateway} | Latency: {latency:.1f}ms", RetroTheme.TEXT_DIM)
+                if connection_check_counter % 2 == 0:
+                    try:
+                        import psutil
+                        connections = psutil.net_connections(kind='inet')
+
+                        for conn in connections:
+                            # Only log established connections with remote address
+                            if conn.status == 'ESTABLISHED' and conn.raddr:
+                                remote_ip = conn.raddr.ip
+                                remote_port = conn.raddr.port
+                                local_port = conn.laddr.port if conn.laddr else 'N/A'
+
+                                # Create unique identifier for this connection
+                                conn_id = f"{remote_ip}:{remote_port}"
+
+                                # Only log new connections
+                                if conn_id not in seen_ips:
+                                    seen_ips.add(conn_id)
+                                    self._log(f"→ {remote_ip}:{remote_port} → :{local_port}", RetroTheme.TEXT)
+
+                                    # Keep seen_ips from growing too large
+                                    if len(seen_ips) > 100:
+                                        seen_ips.clear()
+                    except Exception as e:
+                        pass  # Silently ignore connection enumeration errors
 
                 time.sleep(1)
 
