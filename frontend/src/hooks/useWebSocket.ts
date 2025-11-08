@@ -65,18 +65,10 @@ export function useWebSocket(url: string): UseWebSocketReturn {
 
       ws.onmessage = (event) => {
         try {
-          const message = JSON.parse(event.data)
-
-          // Ignore initial connection message
-          if (message.type === 'connected') {
-            console.log('📩 Received connection confirmation')
-            return
-          }
-
-          // Process real-time data
-          setData(message as RealtimeData)
+          const message = JSON.parse(event.data) as RealtimeData
+          setData(message)
         } catch (err) {
-          console.error('Failed to parse WebSocket message:', err, event.data)
+          console.error('Failed to parse message:', err)
         }
       }
 
