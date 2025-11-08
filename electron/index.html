@@ -8,152 +8,134 @@
 </head>
 <body>
 
-<div id="container">
-    <!-- Top progress bar - Network Load -->
-    <div id="a1">
-        <div id="a11"></div>
+<div id="app">
+  <!-- Top Header Bar -->
+  <div id="header">
+    <div class="header-left">
+      <span class="title">DDoS GOTCHI v3.0</span>
     </div>
-
-    <!-- Latency Gauge -->
-    <div id="a2">
-        <div id="a21"></div>
+    <div class="header-center">
+      <div id="gotchi-face" class="pwnagotchi-face">(◕‿‿◕)</div>
+      <div id="gotchi-quote" class="quote">initializing network monitor...</div>
     </div>
-
-    <!-- Left side - Connection Ports/IPs -->
-    <div id="a3"></div>
-
-    <!-- Left side - Connection Activity Bars -->
-    <div id="a4"></div>
-
-    <!-- Bottom - Active Connection Indicators -->
-    <div id="a5"></div>
-
-    <!-- Top center - Pwnagotchi Face + Title -->
-    <div id="a6">
-        <span id="gotchi-face">(◕‿‿◕)</span>
-        <br>
-        <span id="gotchi-title">DDOS GOTCHI</span>
+    <div class="header-right">
+      <span id="current-time">00:00:00</span>
     </div>
+  </div>
 
-    <!-- Top right - Network Stats Panel -->
-    <div id="a7">
-        <span id="a71">network monitor</span>
-        <span id="a73">
-            <b class="a731" id="stat-connections">0</b>
-            <b class="a732" id="stat-label-conn">CONN</b>
-        </span>
-        <span id="a74">
-            <b class="a741" id="stat-unique-ips">0</b>
-            <b class="a742" id="stat-label-ips">IPs</b>
-            <b class="a743" id="stat-threat">SAFE</b>
-        </span>
-        <span id="a76" id="current-time">00:00:00</span>
-    </div>
+  <!-- Main Content Area -->
+  <div id="main-content">
 
-    <!-- Right side - Packet Loss Graph -->
-    <div id="a8">
-        <div id="a81"></div>
-    </div>
+    <!-- Left Panel - Network Stats -->
+    <div id="left-panel" class="panel">
+      <div class="panel-title">[ NETWORK STATUS ]</div>
 
-    <!-- Bottom right - Live IP Addresses -->
-    <div id="a9">
-        <span class="ip-segment">0</span>:
-        <span class="ip-segment">0</span>.
-        <span class="ip-segment">0</span>:
-        <span class="ip-segment">0</span>&nbsp;
-        <span class="ip-segment">0</span>
-    </div>
-
-    <!-- Bottom center - Threat Level Bar + Quote -->
-    <div id="a10">
-        <span id="threat-quote">monitoring packets...</span>
-        <span id="threat-bar"></span>
-    </div>
-
-    <!-- Bottom left - Connections Per Second Bar Graph -->
-    <div id="b1">
-        <span class="b11"></span>
-        <span class="b12"></span>
-        <span class="b13"></span>
-        <span class="b14"></span>
-        <span class="b15"></span>
-        <span class="b16"></span>
-        <span class="b17"></span>
-        <span class="b18"></span>
-        <span class="b19"></span>
-        <span class="b110"></span>
-    </div>
-
-    <!-- Center 3D Figure - Main Status Indicator -->
-    <div id="figure">
-        <!-- Info panel on left of figure -->
-        <div id="a7" class="figure-info">
-            <span id="a71">latency</span>
-            <span id="a73">
-                <b class="a731" id="fig-latency">0</b>
-                <b class="a732">ms</b>
-            </span>
-            <span id="a74">
-                <b class="a741" id="fig-packet-loss">0</b>
-                <b class="a742">%</b>
-                <b class="a743">LOSS</b>
-            </span>
-            <span id="a76">packet analysis</span>
+      <div class="stat-group">
+        <div class="stat-row">
+          <span class="stat-label">Connections:</span>
+          <span class="stat-value" id="stat-connections">0</span>
         </div>
+        <div class="stat-row">
+          <span class="stat-label">Unique IPs:</span>
+          <span class="stat-value" id="stat-unique-ips">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Latency:</span>
+          <span class="stat-value" id="stat-latency">0 ms</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Packet Loss:</span>
+          <span class="stat-value" id="stat-packet-loss">0%</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Threat Level:</span>
+          <span class="stat-value threat-normal" id="stat-threat">NORMAL</span>
+        </div>
+      </div>
 
-        <!-- Outer rotating ring -->
-        <div id="f1"></div>
-        <div id="f2"></div>
+      <div class="divider"></div>
 
-        <!-- Main blue circle with crosshairs -->
-        <div id="f3">
+      <div class="panel-title">[ ACTIVITY BARS ]</div>
+      <div id="activity-bars"></div>
+    </div>
+
+    <!-- Center - 3D Status Indicator -->
+    <div id="center-display">
+      <div id="status-indicator">
+        <!-- 3D Rotating Figure -->
+        <div id="figure">
+          <!-- Outer ring -->
+          <div id="f1"></div>
+
+          <!-- Rotating tick marks -->
+          <div id="f2"></div>
+
+          <!-- Main circle with crosshairs -->
+          <div id="f3">
             <div id="f31">
-                <span class="f311"><b></b></span>
-                <span class="f312"><b></b></span>
+              <span class="f311"><b></b></span>
+              <span class="f312"><b></b></span>
             </div>
             <div id="f32">
-                <span class="f321"></span>
-                <span class="f322"></span>
+              <span class="f321"></span>
+              <span class="f322"></span>
             </div>
             <div id="f33"></div>
             <div id="f34"></div>
-        </div>
+          </div>
 
-        <!-- Middle ring with cross -->
-        <div id="f4">
+          <!-- Middle ring -->
+          <div id="f4">
             <div id="f41"></div>
             <div id="f42"></div>
             <div id="f43" class="f431"></div>
             <div id="f43" class="f432"></div>
             <div id="f43" class="f433"></div>
             <div id="f43" class="f434"></div>
-        </div>
+          </div>
 
-        <!-- Rotating tick marks -->
-        <div id="f5"></div>
+          <!-- Inner rotating ticks -->
+          <div id="f5"></div>
 
-        <!-- Inner rings -->
-        <div id="f6"></div>
-        <div id="f7">
+          <!-- Inner rings -->
+          <div id="f6"></div>
+          <div id="f7">
             <div id="f71"></div>
             <div id="f72"></div>
-        </div>
-        <div id="f8">
+          </div>
+          <div id="f8">
             <div id="f81"></div>
             <div id="f82"></div>
-        </div>
+          </div>
 
-        <!-- Center dot -->
-        <div id="f9">
+          <!-- Center dot -->
+          <div id="f9">
             <span></span>
+          </div>
         </div>
+      </div>
     </div>
 
-    <!-- Connection Log Overlay (custom addition) -->
-    <div id="connection-log-panel">
-        <div class="log-title">▼ LIVE CONNECTIONS</div>
-        <div id="connection-log"></div>
+    <!-- Right Panel - Live Connection Log -->
+    <div id="right-panel" class="panel">
+      <div class="panel-title">[ LIVE CONNECTIONS ]</div>
+      <div id="connection-log"></div>
     </div>
+
+  </div>
+
+  <!-- Bottom Graphs -->
+  <div id="graphs-area">
+    <div class="graph-container">
+      <div class="graph-title">LATENCY (MS)</div>
+      <canvas id="latency-graph" width="500" height="120"></canvas>
+    </div>
+    <div class="graph-container">
+      <div class="graph-title">PACKET LOSS (%)</div>
+      <canvas id="packetloss-graph" width="500" height="120"></canvas>
+    </div>
+  </div>
+
 </div>
 
 <script src="renderer.js"></script>
