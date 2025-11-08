@@ -1,4 +1,4 @@
-# DDoS Gotchi 🤖⚡
+# DDoS Gotchi 🤖⚡ - Advanced Detection System
 
 <div align="center">
 
@@ -6,9 +6,9 @@
 ![License](https://img.shields.io/badge/License-Educational-green?style=for-the-badge)
 ![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Windows-lightgrey?style=for-the-badge)
 
-**A cybersecurity virtual pet that detects and reacts to DDoS attacks**
+**An advanced DDoS detection system with virtual pet interface**
 
-Inspired by Pwnagotchi • Cyber-themed • Real-time monitoring
+Inspired by Pwnagotchi • Cyber-themed • Real-time monitoring • ML-Ready
 
 [Features](#-features) • [Installation](#-installation) • [Usage](#-usage) • [Configuration](#%EF%B8%8F-configuration)
 
@@ -18,34 +18,118 @@ Inspired by Pwnagotchi • Cyber-themed • Real-time monitoring
 
 ## 📖 Overview
 
-DDoS Gotchi is a network monitoring tool with personality! It watches your network for signs of DDoS attacks and responds with different moods, ASCII faces, and sassy quotes. Features a beautiful Matrix-inspired rain effect and smooth animations.
+DDoS Gotchi is a **production-ready network monitoring and DDoS detection system** with personality! Combining advanced multi-layered detection algorithms with an engaging Matrix-themed interface, it provides real-time network security monitoring in an airgapped lab environment.
+
+**Version 2.0** introduces powerful new features:
+- 🧠 **Multi-layered attack detection** with baseline learning
+- 📊 **Real-time graphing** of network metrics
+- 🔔 **Multi-channel alerting** (Desktop, Discord, Email)
+- 📝 **Persistent logging** to JSON/CSV
+- 🌐 **Auto-detection** of network configuration
+- 📈 **Attack classification** (SYN flood, UDP flood, ICMP flood, etc.)
+- 💾 **Historical data** tracking and analysis
 
 Perfect for:
-- 🔬 Security research labs
-- 🎓 Educational environments
-- 🛡️ Network monitoring
-- 🎮 Having a cyber-pet companion
+- 🔬 Security research labs analyzing Mirai malware
+- 🎓 Educational cybersecurity environments
+- 🛡️ Network monitoring and threat detection
+- 📊 Network performance analysis
+- 🎮 Having an intelligent cyber-pet companion
 
 ## ✨ Features
 
-- **🔍 Real-time Network Monitoring** - Tracks latency, packet loss, and connection stability
-- **🚨 DDoS Detection** - Identifies network degradation patterns consistent with attacks
-- **😎 5 Dynamic Moods** - ASCII faces change based on network health
-- **🌊 Matrix Rain Effect** - Animated cyberpunk-themed background with Japanese characters
-- **📊 Live Statistics** - Latency, packet loss, threat levels, and attack counter
-- **🎭 Contextual Quotes** - Witty responses to network conditions
-- **🔄 Smooth State Transitions** - Intelligent smoothing prevents flickering
-- **💻 Cross-platform** - Works on Linux, Windows (with some limitations)
+### 🔍 Advanced Detection System
 
-## 🎭 Mood States
+- **Multi-Algorithm Detection**
+  - Threshold-based detection with configurable limits
+  - Baseline learning (learns normal network behavior)
+  - Anomaly score calculation
+  - Pattern-based attack classification
+  - Confidence scoring for each detection
+
+- **Attack Type Classification**
+  - ICMP Flood / Network Saturation
+  - UDP Flood Detection
+  - SYN Flood / Resource Exhaustion
+  - Mixed DDoS Attacks
+  - Slow DDoS / Network Congestion
+
+- **Network Intelligence**
+  - Auto-detection of gateway and network configuration
+  - Multi-gateway monitoring with failover
+  - Connection count tracking
+  - Port scan detection
+  - Traffic pattern analysis
+
+### 📊 Real-Time Visualization
+
+- **Multi-Panel Dashboard** (1280x800 resolution)
+  - Gotchi Pet Panel with animated ASCII faces
+  - Network Statistics Panel
+  - Real-Time Graphs (Latency & Packet Loss)
+  - Attack Detection Panel with recent attack history
+  - Live IP information (Local + Public)
+
+- **Advanced Graphics**
+  - Matrix rain effect background
+  - CRT scanlines overlay
+  - Real-time line graphs
+  - Color-coded statistics
+  - Glitch effects during attacks
+  - Smooth animations
+
+### 🔔 Multi-Channel Alerting
+
+- **Desktop Notifications** (Linux notify-send)
+  - Critical priority alerts
+  - Attack type and severity information
+  - Configurable cooldown periods
+
+- **Discord Webhook Integration**
+  - Rich embed messages
+  - Color-coded severity levels
+  - Timestamp information
+  - Remote monitoring capability
+
+- **Email Alerts** (SMTP)
+  - Configurable SMTP server settings
+  - Attack notifications
+  - Support for TLS/SSL
+
+### 📝 Data Logging & Export
+
+- **Attack Logging**
+  - JSON-formatted attack logs
+  - Timestamp, type, severity, metrics
+  - Historical attack database
+  - 24-hour attack history display
+
+- **Statistics Export**
+  - CSV export of all network metrics
+  - Minute-by-minute data logging
+  - State transitions
+  - Anomaly scores
+  - Connection counts
+
+### 🎭 Dynamic Mood States
 
 | State | Face | Trigger Conditions | Quote Example |
 |-------|------|-------------------|---------------|
-| **Happy** | `(⌐■_■)` | Latency <10ms, Loss <1% | "Living my best life in the 45.33 subnet" |
+| **Happy** | `(⌐■_■)` | Latency <10ms, Loss <1% | "Living my best life in this subnet" |
 | **Alert** | `(⌐■_◉)` | Latency 10-50ms, Loss 1-5% | "Hold up, detecting anomalies" |
 | **Under Attack** | `(✖╭╮✖)` | Latency 50-200ms, Loss 5-20% | "WE'RE GETTING DDOS'D!" |
 | **Stressed** | `(⊙﹏⊙)` | Latency >200ms, Loss >20% | "I CAN'T BREATHE!" |
 | **Disconnected** | `(×_×)` | No connection | "404: Network not found" |
+
+### 🌐 Network Auto-Detection
+
+- **Automatic Configuration**
+  - Gateway auto-detection using netifaces
+  - Network prefix auto-detection
+  - Interface selection (prioritizes wireless)
+  - SSID detection (Linux with iwgetid)
+  - Public IP detection via multiple APIs
+  - Fallback mechanisms for reliability
 
 ## 📦 Installation
 
@@ -54,6 +138,7 @@ Perfect for:
 - **Python 3.8+**
 - **pip** (Python package manager)
 - Active network connection
+- **Linux** (Fedora/Ubuntu recommended) or Windows
 
 ### Quick Setup
 
@@ -72,12 +157,12 @@ python3 ddos_gotchi.py
 ### Platform-Specific Installation
 
 <details>
-<summary><b>Ubuntu/Debian</b></summary>
+<summary><b>Ubuntu/Debian (Recommended)</b></summary>
 
 ```bash
 # Install system dependencies
 sudo apt update
-sudo apt install python3 python3-pip python3-venv wireless-tools iproute2
+sudo apt install python3 python3-pip python3-venv wireless-tools iproute2 libnotify-bin
 
 # Create virtual environment (recommended)
 python3 -m venv venv
@@ -92,11 +177,11 @@ python3 ddos_gotchi.py
 </details>
 
 <details>
-<summary><b>Fedora/RHEL</b></summary>
+<summary><b>Fedora/RHEL (Recommended)</b></summary>
 
 ```bash
 # Install system dependencies
-sudo dnf install python3 python3-pip wireless-tools iproute
+sudo dnf install python3 python3-pip wireless-tools iproute libnotify
 
 # Create virtual environment (recommended)
 python3 -m venv venv
@@ -114,8 +199,7 @@ python3 ddos_gotchi.py
 <summary><b>Windows</b></summary>
 
 ```powershell
-# Install Python from https://www.python.org/downloads/
-# Make sure to check "Add Python to PATH" during installation
+# Install Python from python.org if not already installed
 
 # Install dependencies
 pip install -r requirements.txt
@@ -124,68 +208,103 @@ pip install -r requirements.txt
 python ddos_gotchi.py
 ```
 
-**Note:** SSID detection and the test simulator require Linux. Basic monitoring works on Windows.
+**Note:** Some features (SSID detection, desktop notifications) may not work on Windows.
 </details>
 
 ### Using the Launch Script (Linux)
 
 ```bash
+# Make the script executable
 chmod +x launch.sh
-./launch.sh
-```
 
-The launch script provides options for:
-1. Normal mode
-2. Debug mode (verbose output)
-3. Fullscreen mode
-4. Test mode (with simulator)
+# Run with interactive menu
+./launch.sh
+
+# Or directly:
+./launch.sh normal    # Normal mode
+./launch.sh debug     # Debug mode with verbose output
+./launch.sh test      # Run test simulator (requires sudo)
+```
 
 ## 🚀 Usage
 
-### Basic Usage
+### Basic Operation
+
+1. **Start the application:**
+   ```bash
+   python3 ddos_gotchi.py
+   ```
+
+2. **Monitor the dashboard:**
+   - Watch the Gotchi's mood change based on network conditions
+   - View real-time graphs of latency and packet loss
+   - Check attack detection panel for alerts
+   - Monitor your local and public IP addresses
+
+3. **Keyboard Controls:**
+   - `ESC` - Exit the application
+   - `SPACE` - Force quote change
+
+### Testing DDoS Detection
+
+**⚠️ WARNING: Only run in isolated lab environments!**
 
 ```bash
-python3 ddos_gotchi.py
+# Use the built-in test simulator (Linux only, requires sudo)
+python3 test_simulator.py
+
+# Select from 7 test scenarios:
+# 1. Normal conditions
+# 2. Light attack (50ms latency, 5% loss)
+# 3. Moderate attack (100ms latency, 10% loss)
+# 4. Heavy attack (300ms latency, 30% loss)
+# 5. Severe attack (1000ms latency, 50% loss)
+# 6. Progressive attack (gradual escalation)
+# 7. Fluctuating attack (random spikes)
 ```
 
-### Controls
+### Monitoring Logs
 
-| Key | Action |
-|-----|--------|
-| **ESC** | Exit program |
-| **SPACE** | Change quote |
-| **Close Window** | Exit program |
+```bash
+# View attack logs
+cat logs/attacks.json | jq '.'
 
-### What You'll See
+# View statistics export
+cat logs/stats.csv
 
-The interface displays:
-- 🌧️ Animated Matrix rain background
-- 😎 ASCII art face showing current mood
-- 🔗 Connection status indicator
-- 📡 Network name (SSID)
-- ⏱️ Current latency in milliseconds
-- 📦 Packet delivery success rate
-- ⚠️ Visual threat level bars
-- 💬 Contextual quote bubbles
-- ⏰ Runtime and total attacks detected
+# Monitor logs in real-time
+tail -f logs/attacks.json
+```
 
-## 🛠️ Configuration
+## ⚙️ Configuration
 
-### Option 1: Edit config.json
+All settings are in `config.json` - **fully functional and respected by the application!**
 
-The `config.json` file allows easy customization without modifying code:
+### Network Settings
 
 ```json
 {
   "network": {
-    "target_network": "45.33.0",
-    "gateway": "45.33.0.1",
-    "target_ssid": "Mirai <3"
-  },
+    "target_network": "auto",        // "auto" or specific prefix like "192.168.1"
+    "gateway": "auto",               // "auto" or specific IP like "192.168.1.1"
+    "target_ssid": "Auto-Detect",
+    "ping_count": 5,                 // Packets per loss test
+    "ping_interval": 2,              // Seconds between checks
+    "additional_gateways": []        // Array of additional gateway IPs to monitor
+  }
+}
+```
+
+**Auto-detection:** Set `"target_network"` and `"gateway"` to `"auto"` to automatically detect your network configuration. This works on **any network**!
+
+### Detection Thresholds
+
+```json
+{
   "thresholds": {
     "happy": {
-      "max_latency": 10,
-      "max_packet_loss": 1
+      "max_latency": 10,             // Milliseconds
+      "max_packet_loss": 1           // Percentage
     },
     "alert": {
       "max_latency": 50,
@@ -194,417 +313,410 @@ The `config.json` file allows easy customization without modifying code:
     "under_attack": {
       "max_latency": 200,
       "max_packet_loss": 20
+    },
+    "stressed": {
+      "min_latency": 200,
+      "min_packet_loss": 20
     }
-  },
-  "ui": {
-    "window_width": 900,
-    "window_height": 600,
-    "fps": 30,
-    "quote_interval_seconds": 15
   }
 }
 ```
 
-### Option 2: Edit ddos_gotchi.py
+**Customize:** Adjust thresholds based on your network's baseline performance.
 
-**Change Network Settings:**
+### UI Customization
 
-Find line ~627:
-```python
-self.network_monitor = NetworkMonitor(
-    target_network="192.168.1",  # Your network prefix
-    gateway="192.168.1.1"         # Your router IP
-)
-```
-
-**Adjust Detection Thresholds:**
-
-Find line ~370 in `StateManager.determine_state()`:
-```python
-if latency < 10 and packet_loss < 1:
-    new_state = 'happy'
-elif latency < 50 and packet_loss < 5:
-    new_state = 'alert'
-# Adjust these values as needed
-```
-
-**Customize Quotes:**
-
-Find line ~63 and modify the `QUOTES` dictionary:
-```python
-QUOTES = {
-    'happy': [
-        "Your custom happy quote here",
-        "Another quote",
-    ],
-    # ... other states
+```json
+{
+  "ui": {
+    "window_width": 1280,            // Default: 1280 (can use 1920 for full HD)
+    "window_height": 800,            // Default: 800 (can use 1080 for full HD)
+    "fps": 30,
+    "quote_interval_seconds": 15,
+    "matrix_rain_enabled": true,
+    "scanlines_enabled": true,
+    "blink_animation_enabled": true,
+    "glitch_effects_enabled": true
+  }
 }
 ```
 
-**Change Colors:**
+**Resolution options:**
+- `1280x800` - Laptop/default
+- `1920x1080` - Full HD desktop
+- `2560x1440` - 2K displays
 
-Find line ~28 and modify RGB values:
-```python
-MATRIX_GREEN = (0, 255, 65)  # Lime green
-DARK_GREEN = (0, 128, 32)
-RED = (255, 0, 0)
-# Add your custom colors
+### Alert Configuration
+
+```json
+{
+  "features": {
+    "sound_effects": false,          // Reserved for future sound support
+    "log_attacks": true,             // Log attacks to JSON file
+    "export_stats": true,            // Export stats to CSV
+    "desktop_notifications": true,   // Linux desktop notifications
+    "discord_webhooks": false,       // Discord alerts (configure below)
+    "email_alerts": false            // Email alerts (configure below)
+  },
+  "alerts": {
+    "discord_webhook_url": "",                    // Your Discord webhook URL
+    "email_smtp_server": "smtp.gmail.com",        // SMTP server
+    "email_smtp_port": 587,
+    "email_from": "your-email@gmail.com",
+    "email_password": "your-app-password",
+    "email_to": "recipient@example.com",
+    "alert_cooldown_seconds": 300                 // 5 minutes between alerts
+  }
+}
 ```
 
-## 🧪 Testing Without Real Attacks
+#### Setting Up Discord Alerts
 
-### Using the Test Simulator
+1. Create a Discord webhook in your server:
+   - Server Settings → Integrations → Webhooks → New Webhook
+2. Copy the webhook URL
+3. Paste into `config.json`:
+   ```json
+   {
+     "features": {
+       "discord_webhooks": true
+     },
+     "alerts": {
+       "discord_webhook_url": "https://discord.com/api/webhooks/YOUR_WEBHOOK_URL"
+     }
+   }
+   ```
 
-The `test_simulator.py` script simulates network conditions using Linux traffic control:
+#### Setting Up Email Alerts
+
+1. Generate an app password (Gmail):
+   - Google Account → Security → 2-Step Verification → App passwords
+2. Configure in `config.json`:
+   ```json
+   {
+     "features": {
+       "email_alerts": true
+     },
+     "alerts": {
+       "email_smtp_server": "smtp.gmail.com",
+       "email_smtp_port": 587,
+       "email_from": "youremail@gmail.com",
+       "email_password": "your-app-password",
+       "email_to": "recipient@example.com"
+     }
+   }
+   ```
+
+### Logging Configuration
+
+```json
+{
+  "logging": {
+    "log_directory": "logs",
+    "attack_log_file": "attacks.json",
+    "stats_export_file": "stats.csv",
+    "max_log_size_mb": 100
+  }
+}
+```
+
+### Detection Configuration
+
+```json
+{
+  "detection": {
+    "enable_baseline_learning": true,           // Learn normal network behavior
+    "enable_attack_classification": true,       // Classify attack types
+    "enable_connection_tracking": true,         // Monitor connection counts
+    "suspicious_connection_threshold": 100      // Connections threshold for anomaly
+  }
+}
+```
+
+## 📊 Understanding the Dashboard
+
+### Panel Layout (1280x800)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│              [ DDOS GOTCHI - ADVANCED DETECTION SYSTEM ]        │
+│         LOCAL IP: 192.168.1.100  |  PUBLIC IP: 123.45.67.89    │
+├────────────────────┬────────────────────────────────────────────┤
+│                    │                                            │
+│   ┌─────────────┐  │  ┌─────────────────────────────────────┐  │
+│   │   GOTCHI    │  │  │     REAL-TIME METRICS               │  │
+│   │   (⌐■_■)    │  │  │  ┌───────────────────────────────┐  │  │
+│   │             │  │  │  │   LATENCY (ms)                │  │  │
+│   │  [ HAPPY ]  │  │  │  │   Graph showing last 60 pts   │  │  │
+│   └─────────────┘  │  │  └───────────────────────────────┘  │  │
+│                    │  │  ┌───────────────────────────────┐  │  │
+│   ┌─────────────┐  │  │  │   PACKET LOSS (%)             │  │  │
+│   │  NETWORK    │  │  │  │   Graph showing last 60 pts   │  │  │
+│   │ STATISTICS  │  │  │  └───────────────────────────────┘  │  │
+│   │             │  │  └─────────────────────────────────────┘  │
+│   │ Status: ●   │  │                                            │
+│   │ Latency: 5  │  │  ┌─────────────────────────────────────┐  │
+│   │ Loss: 0.2%  │  │  │    ATTACK DETECTION                 │  │
+│   │ Anomaly: 0  │  │  │                                     │  │
+│   └─────────────┘  │  │  STATUS: ✓ NO ATTACK DETECTED       │  │
+│                    │  │  RECENT ATTACKS (24h):              │  │
+│                    │  │  2025-11-08 14:23 - UDP Flood       │  │
+└────────────────────┴──┴─────────────────────────────────────────┤
+│         "Living my best life in this subnet"                    │
+│  Runtime: 01:23:45  |  Total Attacks: 3  |  ESC=Exit SPACE=... │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Statistics Explained
+
+- **Status:** Connection state (CONNECTED/DISCONNECTED)
+- **Network:** SSID or network prefix
+- **Gateway:** Router IP being monitored
+- **Interface:** Network interface name (e.g., wlan0, eth0)
+- **Latency:** Current ping time in milliseconds
+- **Avg Latency:** Rolling average of last 10 samples
+- **Baseline:** Learned normal latency (median of last 100 samples)
+- **Packet Loss:** Percentage of packets lost
+- **Connections:** Total active network connections
+- **Established:** Active established TCP connections
+- **Anomaly Score:** Deviation from baseline (0-100)
+- **Confidence:** Detection confidence percentage
+
+### Attack Detection Logic
+
+The system uses **multi-layered detection**:
+
+1. **Threshold-based:** Compares current metrics to configured thresholds
+2. **Baseline comparison:** Detects deviation from learned normal behavior
+3. **Pattern matching:** Classifies attack type based on signature patterns
+4. **Anomaly scoring:** Calculates statistical deviation from baseline
+
+**Attack is detected when:**
+- Metrics exceed threshold levels, OR
+- Anomaly score is high (>50), AND
+- Confidence level is sufficient (>60%)
+
+## 🔧 Advanced Features
+
+### Baseline Learning
+
+The system learns your network's normal behavior:
+- Collects first 100 latency/loss samples
+- Calculates median baseline values
+- Compares current metrics to baseline
+- Adapts to network changes over time
+
+**Status:** Check if baseline is learned by looking at "Baseline" values in stats panel.
+
+### Attack Classification
+
+Based on metric patterns:
+- **ICMP Flood:** Very high packet loss (>50%)
+- **UDP Flood:** High loss (>20%) + high latency (>200ms)
+- **SYN Flood:** Very high latency (>500ms) + low loss (<10%)
+- **Mixed Attack:** High latency (>100ms) + moderate loss (>10%)
+
+### Connection Tracking
+
+Monitors TCP/UDP connections:
+- Total connections
+- State distribution (ESTABLISHED, SYN_SENT, TIME_WAIT, etc.)
+- Unique remote IPs
+- Port scan detection (high SYN_RECV count)
+
+### Historical Data Analysis
 
 ```bash
-# Terminal 1 - Run DDoS Gotchi
-python3 ddos_gotchi.py
+# Analyze attack patterns
+python3 -c "
+import json
+with open('logs/attacks.json') as f:
+    attacks = json.load(f)
+    print(f'Total attacks: {len(attacks)}')
+    types = {}
+    for a in attacks:
+        t = a['attack_type']
+        types[t] = types.get(t, 0) + 1
+    print('Attack types:')
+    for t, count in types.items():
+        print(f'  {t}: {count}')
+"
 
-# Terminal 2 - Run simulator (requires sudo)
-sudo python3 test_simulator.py
+# Analyze statistics
+import pandas as pd
+df = pd.read_csv('logs/stats.csv')
+print(df.describe())
+print(df.groupby('state').size())
 ```
 
-**Available Scenarios:**
-1. Normal Network → Happy face
-2. Alert Condition → Alert face
-3. Active Attack → Under attack face
-4. Severe Attack → Stressed face
-5. Progressive Attack → Gradual escalation
-6. Fluctuating Conditions → Random changes
-7. Complete Cycle → All states in sequence
+## 🛡️ Security Best Practices
 
-**Requirements:**
-- Linux OS only (uses `tc` command)
-- Root/sudo privileges
-- `iproute2` package installed
+### For Lab Use
 
-## 🧪 Testing with Mirai Lab
+1. **Isolated Network:**
+   - Run in airgapped lab environment
+   - Do not deploy on production networks without permission
 
-### Lab Setup
+2. **Test Simulator:**
+   - Only use test_simulator.py in controlled environments
+   - Requires root privileges (uses tc command)
+   - Automatically cleans up traffic control rules on exit
 
-This is designed for airgapped security research environments:
+3. **Alerting:**
+   - Use secure webhook URLs (keep Discord webhook private)
+   - Use app passwords for email (not your main password)
+   - Set appropriate cooldown periods to avoid alert spam
 
-```
-┌─────────────────────┐         ┌──────────────────────┐
-│  Attacker Network   │         │   Victim Network     │
-│   203.0.113.0/24    │────X────│   45.33.0.0/24       │
-│  (Mirai CNC/Botnet) │ Airgap  │  (IoT Devices/WiFi)  │
-└─────────────────────┘         └──────────────────────┘
-                                          │
-                                  ┌───────▼────────┐
-                                  │  DDoS Gotchi   │
-                                  │ (Ubuntu Laptop) │
-                                  └────────────────┘
-```
+### For Mirai Analysis
 
-### Testing Workflow
+This tool is designed for analyzing **Mirai malware in airgapped lab environments**:
 
-1. **Connect** - Join the victim network WiFi (45.33.0.0/24)
-2. **Launch DDoS Gotchi** - Start monitoring
-3. **Execute Attack** - Launch Mirai DDoS from CNC
-4. **Observe** - Watch gotchi react to network degradation
-5. **Stop Attack** - Watch recovery transition
+- Monitor network degradation during Mirai attacks
+- Classify attack types (Mirai uses multiple DDoS vectors)
+- Log attack patterns for analysis
+- Learn baseline before deploying honeypots
 
-### Expected Behavior
-
-```
-Normal → Alert → Under Attack → Stressed
-  ↑                                 ↓
-  └────────── Recovery ←────────────┘
-```
-
-- **Before Attack**: Happy face, <10ms latency, stable connection
-- **Early Attack**: Alert face, 10-50ms latency, minor packet loss
-- **Active Attack**: Under attack face, 50-200ms latency, glitch effects
-- **Severe Attack**: Stressed face, >200ms latency, heavy packet loss
-- **Recovery**: Gradual transition back through states
-
-## 📁 Project Structure
-
-```
-DDoSGotchi/
-├── ddos_gotchi.py       # Main application
-├── test_simulator.py    # Network condition simulator (Linux only)
-├── requirements.txt     # Python dependencies
-├── config.json          # Configuration file
-├── launch.sh           # Launcher script (Linux)
-├── QUICKSTART.md       # Quick reference guide
-└── README.md           # This file
-```
-
-## 🔍 How It Works
-
-### Architecture
-
-```
-┌─────────────────────────────────────────┐
-│         Background Thread               │
-│  ┌───────────────────────────────────┐  │
-│  │  Network Monitor                  │  │
-│  │  • Ping gateway every 2 seconds   │  │
-│  │  • Measure latency                │  │
-│  │  • Calculate packet loss          │  │
-│  │  • Update stats dictionary        │  │
-│  └───────────────────────────────────┘  │
-└─────────────────────────────────────────┘
-                   │
-                   ▼
-┌─────────────────────────────────────────┐
-│            Main Thread                  │
-│  ┌───────────────────────────────────┐  │
-│  │  State Manager                    │  │
-│  │  • Read stats from monitor        │  │
-│  │  • Determine current state        │  │
-│  │  • Apply smoothing algorithm      │  │
-│  │  • Select appropriate quote       │  │
-│  └───────────────────────────────────┘  │
-│                 │                        │
-│                 ▼                        │
-│  ┌───────────────────────────────────┐  │
-│  │  Cyber UI Renderer                │  │
-│  │  • Matrix rain animation          │  │
-│  │  • Draw ASCII face                │  │
-│  │  • Display statistics             │  │
-│  │  • Render threat levels           │  │
-│  │  • Show quotes                    │  │
-│  └───────────────────────────────────┘  │
-└─────────────────────────────────────────┘
-```
-
-### Key Components
-
-**NetworkMonitor** (`ddos_gotchi.py:174-345`)
-- Detects WiFi interface automatically
-- Pings gateway using subprocess
-- Parses ping output with regex
-- Maintains rolling history (10 samples)
-- Handles cross-platform differences
-
-**StateManager** (`ddos_gotchi.py:348-412`)
-- Analyzes network metrics
-- Compares against thresholds
-- Uses state history for smoothing (5 samples)
-- Prevents rapid flickering
-- Manages quote rotation
-
-**CyberUI** (`ddos_gotchi.py:415-603`)
-- Renders Matrix rain effect
-- Draws ASCII faces with animations
-- Shows color-coded statistics
-- Creates threat level bars
-- Handles visual effects (glitch, scanlines, blinking)
-
-**MatrixRain** (`ddos_gotchi.py:121-171`)
-- Generates falling characters (Japanese + ASCII)
-- Implements fade effect
-- Randomizes character positions
-- Creates authentic Matrix aesthetic
+**Never:**
+- Connect an infected system to production networks
+- Use this as your only security measure
+- Deploy without proper lab isolation
 
 ## 🐛 Troubleshooting
 
 ### Common Issues
 
-<details>
-<summary><b>"No network detected"</b></summary>
-
-**Causes:**
-- Not connected to WiFi
-- Incorrect gateway IP
-- Firewall blocking ping
-
-**Solutions:**
+**Problem:** "Gateway detection error"
 ```bash
-# Check connection
-ip addr show
-ping 45.33.0.1
-
-# Edit gateway in config.json
-nano config.json
-
-# Allow ICMP (if firewall blocks)
-sudo iptables -A INPUT -p icmp -j ACCEPT
-sudo iptables -A OUTPUT -p icmp -j ACCEPT
+# Solution: Manually set gateway in config.json
+{
+  "network": {
+    "gateway": "192.168.1.1"  # Your router's IP
+  }
+}
 ```
-</details>
 
-<details>
-<summary><b>"No module named 'pygame'"</b></summary>
-
+**Problem:** "No SSID detected"
 ```bash
-pip install pygame psutil netifaces
-# Or with pip3
-pip3 install pygame psutil netifaces
-```
-</details>
-
-<details>
-<summary><b>High latency on normal network</b></summary>
-
-Your network might actually be slow, or adjust thresholds:
-
-```python
-# In config.json or ddos_gotchi.py line ~370
-if latency < 20 and packet_loss < 2:  # More lenient
-    new_state = 'happy'
-```
-</details>
-
-<details>
-<summary><b>SSID not showing</b></summary>
-
-This is normal on some systems. The program uses IP-based detection as fallback.
-
-```bash
-# Linux: Install wireless tools
+# Install wireless-tools (Linux)
 sudo apt install wireless-tools
 
-# If still doesn't work, it will show "Network: 45.33.0" instead of SSID
+# Or set target_network manually
+{
+  "network": {
+    "target_network": "192.168.1"  # First 3 octets of your IP
+  }
+}
 ```
-</details>
 
-<details>
-<summary><b>Permission denied errors</b></summary>
-
+**Problem:** Desktop notifications not working
 ```bash
-# Linux/Mac
-sudo python3 ddos_gotchi.py
+# Install libnotify (Ubuntu/Debian)
+sudo apt install libnotify-bin
 
-# Windows
-# Run Command Prompt as Administrator
+# Test manually
+notify-send "Test" "This is a test notification"
 ```
-</details>
 
-<details>
-<summary><b>Test simulator not working</b></summary>
-
-The simulator only works on Linux:
-
+**Problem:** Public IP shows "Detecting..."
 ```bash
-# Install traffic control
-sudo apt install iproute2
+# Check internet connectivity
+curl https://api.ipify.org
 
-# Run with sudo
+# If firewall blocks it, public IP will remain N/A (doesn't affect detection)
+```
+
+**Problem:** "Permission denied" for test_simulator.py
+```bash
+# Test simulator requires root for tc (traffic control)
 sudo python3 test_simulator.py
 ```
-</details>
 
-## 🎨 Customization Ideas
+### Debug Mode
 
-### Add Sound Effects
-
-```python
-# Initialize mixer
-pygame.mixer.init()
-
-# Load sounds
-alert_sound = pygame.mixer.Sound("alert.wav")
-attack_sound = pygame.mixer.Sound("attack.wav")
-
-# Play on state change
-if new_state == 'under_attack':
-    attack_sound.play()
+Run with Python's verbose output:
+```bash
+python3 -v ddos_gotchi.py
 ```
 
-### Advanced Features
+Check logs:
+```bash
+# Monitor stdout
+python3 ddos_gotchi.py 2>&1 | tee debug.log
 
-- 📧 Email/Discord alerts for attacks
-- 📝 Log attacks to file with timestamps
-- 📊 Export statistics to JSON/CSV
-- 📈 Add graphs for latency over time
-- 🌐 Monitor multiple gateways simultaneously
-- 🎯 Custom attack pattern signatures
-- 🖼️ Additional visual themes
-- 🌈 RGB LED integration for physical feedback
-
-## 🔒 Security & Ethics
-
-⚠️ **EDUCATIONAL USE ONLY** ⚠️
-
-This tool is designed **exclusively** for:
-- ✅ Authorized security research
-- ✅ Educational purposes
-- ✅ Controlled lab environments (airgapped)
-- ✅ Personal network monitoring
-- ✅ CTF competitions
-- ✅ DDoS detection research
-
-**Strictly DO NOT:**
-- ❌ Use on networks you don't own
-- ❌ Launch actual DDoS attacks
-- ❌ Monitor networks without permission
-- ❌ Deploy for malicious purposes
-- ❌ Violate computer fraud laws (CFAA, etc.)
-
-**Legal Notice:** The authors are not responsible for misuse. Users must ensure compliance with all applicable laws and regulations.
-
-## 📚 Learn More
-
-### Understanding DDoS Detection
-
-DDoS Gotchi detects attacks by monitoring:
-1. **Latency spikes** - Overwhelmed routers respond slowly
-2. **Packet loss** - Congestion causes dropped packets
-3. **Connection stability** - Network becomes unreliable
-
-### Detection Algorithm
-
-```python
-# Simplified logic
-if latency > 200ms OR packet_loss > 20%:
-    state = "stressed"  # Severe attack
-elif latency > 50ms OR packet_loss > 5%:
-    state = "under_attack"  # Active attack
-elif latency > 10ms OR packet_loss > 1%:
-    state = "alert"  # Degradation detected
-else:
-    state = "happy"  # All good
+# Check system logs
+journalctl -f | grep ddos
 ```
 
-### Why Smoothing Matters
+## 📈 Performance
 
-Without smoothing, a single ping timeout causes rapid state changes. DDoS Gotchi uses:
-- **Rolling averages** (10 samples) for metrics
-- **State history** (5 samples) for mode calculation
-- **Debouncing** to prevent flickering
+### System Requirements
+
+- **CPU:** Minimal (ping operations every 2 seconds)
+- **RAM:** ~50-100 MB
+- **Network:** Active connection required
+- **Disk:** <10 MB for logs (configurable)
+
+### Optimization Tips
+
+1. **Reduce FPS** if CPU usage is high:
+   ```json
+   {"ui": {"fps": 20}}
+   ```
+
+2. **Increase check interval** for less frequent monitoring:
+   ```json
+   {"monitoring": {"check_interval_seconds": 5}}
+   ```
+
+3. **Disable features** you don't need:
+   ```json
+   {
+     "features": {
+       "export_stats": false,
+       "desktop_notifications": false
+     },
+     "ui": {
+       "matrix_rain_enabled": false,
+       "scanlines_enabled": false
+     }
+   }
+   ```
 
 ## 🤝 Contributing
 
-Contributions welcome! Ideas for enhancement:
+This is an educational/research project. Contributions welcome!
 
-- 🎨 New themes (steampunk, vaporwave, etc.)
-- 😄 Additional facial expressions
-- 📊 Better detection algorithms
-- 🌐 Multi-network monitoring
-- 🔌 Plugin system for extensibility
-- 🐳 Docker containerization
-- 🎮 Raspberry Pi support with e-ink display
+Areas for enhancement:
+- Machine learning integration
+- More attack signatures
+- Network flow analysis
+- Sound effects
+- Additional visualization options
+- Mobile app companion
 
-## 📄 License
+## 📜 License
 
-This project is for **educational purposes only**. Use responsibly and only on networks you own or have explicit permission to monitor.
+MIT License with educational use notice. See LICENSE file.
 
-## 🙏 Acknowledgments
+**Important:** This tool is designed for educational and research purposes in controlled lab environments. Do not use for unauthorized network monitoring or attacks.
 
-- **[Pwnagotchi](https://pwnagotchi.ai/)** - The original AI-powered WiFi hacking companion
-- **[Fancygotchi](https://github.com/V0rtex420/Fancygotchi)** - Beautiful cyber themes and aesthetics
-- **Mirai Botnet Research** - Understanding real-world DDoS attack patterns
-- **The Matrix** - Visual inspiration for the rain effect
+## 🙏 Credits
+
+- Inspired by **Pwnagotchi** - AI-powered WiFi auditing companion
+- Matrix rain effect inspired by classic cyberpunk aesthetics
+- Built for Mirai malware research in isolated lab environments
 
 ## 📞 Support
 
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/junt506/DDoSGotchi/issues)
-- 💡 **Feature Requests**: [GitHub Discussions](https://github.com/junt506/DDoSGotchi/discussions)
-- 📖 **Documentation**: See [QUICKSTART.md](QUICKSTART.md)
+- **Issues:** [GitHub Issues](https://github.com/junt506/DDoSGotchi/issues)
+- **Docs:** See QUICKSTART.md for quick reference
 
 ---
 
 <div align="center">
 
-**Keep your gotchi happy by maintaining a stable network!** 🛡️
+**Made with ❤️ for the cybersecurity research community**
 
-*Built with 💚 for the cybersecurity community*
-
-⭐ **Star this repo if you find it useful!** ⭐
+**Stay safe, monitor networks, defeat DDoS! 🛡️**
 
 </div>
