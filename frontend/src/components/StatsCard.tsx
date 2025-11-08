@@ -1,5 +1,4 @@
-import { motion } from 'framer-motion'
-import { ReactNode } from 'react'
+import { ReactNode, memo } from 'react'
 
 interface StatsCardProps {
   title: string
@@ -9,7 +8,7 @@ interface StatsCardProps {
   subtitle?: string
 }
 
-export default function StatsCard({
+function StatsCard({
   title,
   value,
   icon,
@@ -29,31 +28,23 @@ export default function StatsCard({
   }
 
   return (
-    <motion.div
-      className={`glass-panel p-4 bg-gradient-to-br ${statusColors[status]} hover:scale-105 transition-transform`}
-      whileHover={{ y: -5 }}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+    <div
+      className={`glass-panel p-4 bg-gradient-to-br ${statusColors[status]} transition-all duration-300`}
     >
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1">
           <p className="text-gray-400 text-sm font-medium">{title}</p>
-          <motion.p
-            className={`text-2xl font-bold mt-1 ${iconColors[status]}`}
-            key={value}
-            initial={{ scale: 1.2, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.3 }}
-          >
+          <p className={`text-2xl font-bold mt-1 ${iconColors[status]} transition-all duration-300`}>
             {value}
-          </motion.p>
+          </p>
           {subtitle && (
             <p className="text-gray-500 text-xs mt-1">{subtitle}</p>
           )}
         </div>
         <div className={`${iconColors[status]} opacity-50`}>{icon}</div>
       </div>
-    </motion.div>
+    </div>
   )
 }
+
+export default memo(StatsCard)
