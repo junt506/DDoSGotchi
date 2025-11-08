@@ -99,7 +99,7 @@ class DDoSGotchiApp:
 
         # Data storage
         self.latency_data = deque(maxlen=100)
-        self.packet_loss_data = deque(100)
+        self.packet_loss_data = deque(maxlen=100)
         self.time_data = deque(maxlen=100)
 
         # Gotchi state
