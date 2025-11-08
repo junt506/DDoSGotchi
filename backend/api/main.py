@@ -124,9 +124,15 @@ async def websocket_realtime(websocket: WebSocket):
         await websocket.send_json({"type": "connected", "message": "WebSocket connected"})
         print(f"📤 Sent initial message to client")
 
+        update_count = 0
         while True:
-            # Get current stats
-            stats = monitor_state['network_monitor'].get_current_stats()
+            update_count += 1
+
+            # Only check packet loss every 5 seconds (slower operation)
+            include_packet_loss = (update_count % 5 == 0)
+
+            # Get current stats (skip packet loss for faster updates)
+            stats = monitor_state['network_monitor'].get_current_stats(include_packet_loss=include_packet_loss)
             attack_info = monitor_state['attack_detector'].detect(stats)
 
             # Convert attack_info to match frontend expectations
