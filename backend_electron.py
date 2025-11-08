@@ -196,7 +196,7 @@ class DDoSGotchiBackend:
 
             await asyncio.sleep(self.connection_check_interval)
 
-    async def websocket_handler(self, websocket, path):
+    async def websocket_handler(self, websocket):
         """Handle WebSocket connections from Electron frontend"""
         print(f"Client connected: {websocket.remote_address}")
 
