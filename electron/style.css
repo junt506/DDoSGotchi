@@ -1,0 +1,888 @@
+* {
+	user-select: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+}
+
+body {
+	margin: 0;
+	background: #000;
+	color: #666;
+	font-family: Arial, Helvetica, sans-serif;
+	overflow: hidden;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 100vh;
+	width: 100vw;
+}
+
+div {
+	position: absolute;
+}
+
+/* =================================================================
+   MAIN CONTAINER
+   ================================================================= */
+#container {
+	height: 600px;
+	width: 800px;
+	margin-top: -300px;
+	margin-left: -400px;
+	top: 50%;
+	left: 50%;
+	border: 1px solid #666;
+	perspective: 700px;
+	-webkit-perspective: 700px;
+	animation: start 1s linear;
+	-webkit-animation: start 1s linear;
+	overflow: hidden;
+}
+
+@keyframes start {
+	from { transform: scale(0); }
+	to { transform: scale(1); }
+}
+
+@-webkit-keyframes start {
+	from { -webkit-transform: scale(0); }
+	to { -webkit-transform: scale(1); }
+}
+
+/* Container state colors */
+#container.normal { border-color: #069; }
+#container.warning { border-color: #FC0; }
+#container.attack { border-color: #F00; }
+
+/* =================================================================
+   TOP PROGRESS BAR - NETWORK LOAD
+   ================================================================= */
+#a1 {
+	top: 4px;
+	left: 20px;
+	height: 4px;
+	width: 140px;
+	border: 1px dotted #666;
+}
+
+#a11 {
+	left: 0;
+	top: 0;
+	height: 100%;
+	background: #666;
+	transition: width 0.3s ease;
+}
+
+/* =================================================================
+   LATENCY GAUGE (rotating needle)
+   ================================================================= */
+#a2 {
+	top: 18px;
+	left: 50px;
+	height: 30px;
+	width: 30px;
+	border-radius: 50%;
+	border: 1px dashed #666;
+}
+
+#a21 {
+	top: 8px;
+	left: 13px;
+	height: 14px;
+	width: 4px;
+	background: #333;
+	border-radius: 3px;
+	transition: transform 0.5s ease;
+}
+
+/* =================================================================
+   LEFT SIDE - CONNECTION PORTS/IPS
+   ================================================================= */
+#a3 {
+	top: 20px;
+	left: 20px;
+	height: 400px;
+	width: 60px;
+	font-size: 50%;
+}
+
+#a3 span {
+	display: block;
+	margin-bottom: 10px;
+	text-shadow: 0 0 1px #666;
+	animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+	from { opacity: 0; }
+	50% { opacity: 1; }
+	to { opacity: 0; }
+}
+
+/* =================================================================
+   LEFT SIDE - CONNECTION ACTIVITY BARS
+   ================================================================= */
+#a4 {
+	top: 60px;
+	left: 90px;
+	height: 300px;
+	width: 14px;
+}
+
+#a4 span {
+	display: block;
+	height: 2px;
+	width: 100%;
+	background: #666;
+	margin-bottom: 3px;
+	transition: width 0.2s ease;
+}
+
+/* =================================================================
+   BOTTOM - ACTIVE CONNECTION INDICATORS
+   ================================================================= */
+#a5 {
+	height: 30px;
+	width: 800px;
+	bottom: 0;
+	overflow: hidden;
+	border-top: 1px solid #666;
+}
+
+#a5 span {
+	display: block;
+	position: relative;
+	float: left;
+	height: 30px;
+	width: 24px;
+	border-right: 1px solid #666;
+}
+
+#a5 span:first-child {
+	margin-left: 12px;
+	border-left: 1px solid #666;
+}
+
+#a5 span b {
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	right: 2px;
+	bottom: 2px;
+	background: #666;
+	opacity: 0;
+	animation: blink 2s linear infinite;
+}
+
+@keyframes blink {
+	from { opacity: 0; }
+	50% { opacity: 1; }
+	to { opacity: 0; }
+}
+
+/* =================================================================
+   TOP CENTER - PWNAGOTCHI FACE + TITLE
+   ================================================================= */
+#a6 {
+	text-transform: uppercase;
+	left: 250px;
+	top: 5px;
+	width: 300px;
+	padding: 2px 0;
+	font-size: 75%;
+	text-align: center;
+}
+
+#gotchi-face {
+	font-size: 200%;
+	display: block;
+	margin: 5px 0;
+	text-shadow: 0 0 5px #06F;
+}
+
+#gotchi-title {
+	font-size: 90%;
+	letter-spacing: 3px;
+}
+
+/* =================================================================
+   TOP RIGHT - NETWORK STATS PANEL
+   ================================================================= */
+#a7 {
+	top: 5px;
+	right: 10px;
+	width: 120px;
+	text-align: right;
+}
+
+#a7 span {
+	display: block;
+}
+
+#a7 span b {
+	font-weight: normal;
+	margin-left: -4px;
+	text-shadow: 0 0 1px #666;
+}
+
+#a71 { font-size: 40%; }
+#a72 { font-size: 50%; }
+#a73 { font-size: 100%; }
+#a74 { font-size: 80%; }
+#a75 { font-size: 50%; }
+#a76 { font-size: 40%; }
+
+#stat-threat.safe { color: #0F0; }
+#stat-threat.warning { color: #FC0; }
+#stat-threat.attack { color: #F00; animation: alert-blink 0.5s infinite; }
+
+@keyframes alert-blink {
+	0%, 49% { opacity: 1; }
+	50%, 100% { opacity: 0.3; }
+}
+
+/* =================================================================
+   RIGHT SIDE - PACKET LOSS GRAPH
+   ================================================================= */
+#a8 {
+	top: 80px;
+	right: 7px;
+	height: 320px;
+	width: 50px;
+	border-bottom: 2px solid #666;
+}
+
+#a8 span {
+	display: block;
+	margin-left: 10%;
+	width: 80%;
+	height: 1px;
+	background: #666;
+	margin-bottom: 3px;
+}
+
+#a81 {
+	top: 0;
+	width: 100%;
+	background: #000;
+	transition: height 0.5s ease;
+}
+
+/* =================================================================
+   BOTTOM RIGHT - LIVE IP ADDRESSES
+   ================================================================= */
+#a9 {
+	bottom: 37px;
+	right: 7px;
+	font-size: 80%;
+	text-align: right;
+	text-shadow: 0 0 1px #666;
+}
+
+#a9 span {
+	margin-left: -4px;
+}
+
+#a9 span.local-ip {
+	color: #0FF;
+	text-shadow: 0 0 3px #0FF;
+}
+
+#a9 span.public-ip {
+	color: #666;
+}
+
+/* =================================================================
+   BOTTOM CENTER - THREAT LEVEL BAR + QUOTE
+   ================================================================= */
+#a10 {
+	width: 300px;
+	bottom: 56px;
+	right: 70px;
+	font-size: 50%;
+	text-align: right;
+}
+
+#threat-quote {
+	display: block;
+	margin-bottom: 5px;
+	font-style: italic;
+}
+
+#threat-bar {
+	position: absolute;
+	top: 15px;
+	height: 60%;
+	width: 100px;
+	background: #666;
+	right: 60px;
+	transition: width 0.3s ease, background 0.3s ease;
+}
+
+/* =================================================================
+   BOTTOM LEFT - CONNECTIONS PER SECOND BAR GRAPH
+   ================================================================= */
+#b1 {
+	bottom: 32px;
+	width: 100px;
+	height: 100px;
+	left: 10px;
+}
+
+#b1 span {
+	position: absolute;
+	bottom: 0;
+	height: 50px;
+	width: 7px;
+	background: #666;
+	transition: height 0.3s ease;
+}
+
+.b110 { right: 5px; }
+.b19 { right: 15px; }
+.b18 { right: 25px; }
+.b17 { right: 35px; }
+.b16 { right: 45px; }
+.b15 { right: 55px; }
+.b14 { right: 65px; }
+.b13 { right: 75px; }
+.b12 { right: 85px; }
+.b11 { right: 95px; }
+
+/* =================================================================
+   CENTER 3D FIGURE - MAIN STATUS INDICATOR
+   ================================================================= */
+#figure {
+	top: 100px;
+	left: 300px;
+	height: 340px;
+	width: 340px;
+	border-radius: 5px;
+	transform: rotateY(-30deg) rotateX(10deg);
+	transform-style: preserve-3d;
+	animation: figure 8s ease-in-out infinite;
+}
+
+@keyframes figure {
+	from { transform: rotateY(-30deg) rotateX(30deg); }
+	20% { transform: rotateY(30deg) rotateX(30deg); }
+	40% { transform: rotateY(30deg) rotateX(-30deg); }
+	60% { transform: rotateY(-10deg) rotateX(30deg); }
+	80% { transform: rotateY(30deg) rotateX(-10deg); }
+	to { transform: rotateY(-30deg) rotateX(30deg); }
+}
+
+#figure .figure-info {
+	left: -140px;
+	top: 80px;
+	color: #03F;
+	transform: scale(0.9);
+	animation: info-pulse 2s ease-in-out infinite;
+}
+
+@keyframes info-pulse {
+	from { color: #03F; }
+	25% { color: #00C; }
+	50% { color: #0CF; }
+	75% { color: #03C; }
+	to { color: #03F; }
+}
+
+#figure div,
+#figure span {
+	transform-style: preserve-3d;
+}
+
+/* Outer rotating ring */
+#f1 {
+	left: -2px;
+	top: -2px;
+	height: 340px;
+	width: 340px;
+	border-radius: 50%;
+	border-width: 2px;
+	border-style: solid;
+	box-shadow: 0 0 5px #006;
+	animation: f1 4s ease-in-out infinite;
+}
+
+@keyframes f1 {
+	from { transform: rotateZ(0deg); opacity: 1.0; border-color: #006; }
+	10% { transform: rotateZ(30deg); opacity: 1.0; border-color: #06F; }
+	20% { transform: rotateZ(-30deg); opacity: 0; border-color: #006; }
+	30% { transform: rotateZ(0deg); opacity: 1.0; border-color: #00C; }
+	40% { transform: rotateZ(-60deg); opacity: 1.0; border-color: #006; }
+	50% { transform: rotateZ(-40deg); opacity: 1.0; border-color: #03F; }
+	60% { transform: rotateZ(-100deg); opacity: 0; border-color: #03C; }
+	70% { transform: rotateZ(-150deg); opacity: 1.0; border-color: #006; }
+	80% { transform: rotateZ(100deg); opacity: 0; border-color: #006; }
+	90% { transform: rotateZ(30deg); opacity: 1.0; border-color: #099; }
+	to { transform: rotateZ(0deg); opacity: 1.0; border-color: #006; }
+}
+
+#f1 span {
+	display: block;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin-top: -5px;
+	height: 10px;
+	width: 3px;
+	background: #006;
+	box-shadow: 0 0 5px #006;
+	animation: f1div 4s ease-in-out infinite;
+}
+
+@keyframes f1div {
+	from { background: #006; }
+	10% { background: #06F; }
+	20% { background: #006; }
+	30% { background: #00C; }
+	40% { background: #006; }
+	50% { background: #03F; }
+	60% { background: #03C; }
+	70% { background: #006; }
+	80% { background: #006; }
+	90% { background: #099; }
+	to { background: #006; }
+}
+
+/* Rotating tick marks ring */
+#f2 {
+	height: 340px;
+	width: 340px;
+	animation: f2 20s linear infinite;
+}
+
+@keyframes f2 {
+	from { transform: translateZ(-5px) rotateZ(0deg); }
+	to { transform: translateZ(-5px) rotateZ(360deg); }
+}
+
+#f2 span {
+	display: block;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin-top: -3px;
+	height: 6px;
+	width: 2px;
+	background: #666;
+}
+
+/* Main blue circle with crosshairs */
+#f3 {
+	top: 50px;
+	left: 50px;
+	height: 260px;
+	width: 260px;
+	border-radius: 50%;
+	border-width: 10px;
+	border-style: solid;
+	border-color: #03C;
+	box-shadow: 0 0 5px #03C;
+	transform: translateZ(10px);
+	animation: f3 6s ease-in-out infinite;
+}
+
+@keyframes f3 {
+	from { transform: translateZ(10px) rotateZ(0deg); border-color: #03C; opacity: 1.0; }
+	10% { transform: translateZ(10px) rotateZ(-80deg); border-color: #009; opacity: 1.0; }
+	20% { transform: translateZ(10px) rotateZ(-60deg); border-color: #03C; opacity: 0; }
+	30% { transform: translateZ(10px) rotateZ(-200deg); border-color: #009; opacity: 1.0; }
+	40% { transform: translateZ(10px) rotateZ(-210deg); border-color: #00F; opacity: 1.0; }
+	50% { transform: translateZ(10px) rotateZ(-120deg); border-color: #069; opacity: 1.0; }
+	60% { transform: translateZ(10px) rotateZ(-100deg); border-color: #03C; opacity: 1.0; }
+	70% { transform: translateZ(10px) rotateZ(-30deg); border-color: #03C; opacity: 1.0; }
+	80% { transform: translateZ(10px) rotateZ(0deg); border-color: #003; opacity: 0; }
+	90% { transform: translateZ(10px) rotateZ(90deg); border-color: #03C; opacity: 1.0; }
+	to { transform: translateZ(10px) rotateZ(0deg); border-color: #03C; opacity: 1.0; }
+}
+
+#f31 {
+	width: 40px;
+	background: #000;
+	top: -13px;
+	left: 90px;
+	bottom: -13px;
+}
+
+#f31 span {
+	left: 12px;
+	position: absolute;
+	display: block;
+	border: 1px solid #03C;
+	height: 14px;
+	width: 14px;
+	border-radius: 100%;
+	transform: translateZ(2px);
+}
+
+.f311 { top: 0; }
+.f312 { bottom: 0; }
+
+#f31 span b {
+	top: 3px;
+	left: 3px;
+	position: absolute;
+	height: 8px;
+	width: 8px;
+	background: #03C;
+	border-radius: 100%;
+	animation: f31span 2s ease-in-out infinite;
+}
+
+@keyframes f31span {
+	from { background: #03C; opacity: 1; }
+	25% { background: #039; opacity: 0; }
+	50% { background: #0CC; opacity: 1; }
+	75% { background: #039; opacity: 0; }
+	to { background: #03C; opacity: 1; }
+}
+
+#f32 {
+	height: 40px;
+	background: #000;
+	top: 90px;
+	left: -15px;
+	right: -15px;
+}
+
+#f32 span {
+	position: absolute;
+	display: block;
+	border: 1px solid #009;
+	border-radius: 50%;
+	height: 6px;
+	width: 6px;
+	top: 15px;
+	transform: translateZ(2px);
+}
+
+.f321 { left: 6px; }
+.f322 { right: 6px; }
+
+#f33 {
+	width: 2px;
+	background: #000;
+	top: -10px;
+	left: 128px;
+	bottom: -10px;
+	transform: translateZ(1px) rotateZ(45deg);
+}
+
+#f34 {
+	width: 2px;
+	background: #000;
+	top: -10px;
+	left: 128px;
+	bottom: -10px;
+	transform: translateZ(1px) rotateZ(-45deg);
+}
+
+/* Middle ring with cross */
+#f4 {
+	top: 66px;
+	left: 66px;
+	height: 200px;
+	width: 200px;
+	border: 2px solid #09F;
+	border-radius: 100%;
+	transform: translateZ(20px);
+	animation: f4 6s ease-in-out infinite;
+}
+
+@keyframes f4 {
+	from { transform: translateZ(20px) rotateZ(0); opacity: 1; }
+	25% { transform: translateZ(20px) rotateZ(120deg); opacity: 1; }
+	50% { transform: translateZ(20px) rotateZ(0); opacity: 0; }
+	75% { transform: translateZ(20px) rotateZ(-120deg); opacity: 1; }
+	to { transform: translateZ(20px) rotateZ(0); opacity: 1; }
+}
+
+#f41 {
+	left: 90px;
+	top: -3px;
+	bottom: -3px;
+	width: 10px;
+	background: #000;
+	transform: translateZ(1px);
+}
+
+#f42 {
+	top: 90px;
+	left: -3px;
+	right: -3px;
+	height: 10px;
+	background: #000;
+	transform: translateZ(1px);
+}
+
+#f43 {
+	top: 94px;
+	left: 98px;
+	height: 6px;
+	width: 2px;
+	background: #09F;
+}
+
+.f431 { transform: rotateZ(45deg) translateY(110px); }
+.f432 { transform: rotateZ(-45deg) translateY(110px); }
+.f433 { transform: rotateZ(135deg) translateY(110px); }
+.f434 { transform: rotateZ(225deg) translateY(110px); }
+
+/* Rotating tick marks (inner) */
+#f5 {
+	left: 90px;
+	top: 90px;
+	height: 160px;
+	width: 160px;
+	animation: f5 20s linear infinite;
+}
+
+@keyframes f5 {
+	from { transform: translateZ(25px) rotateZ(360deg); }
+	to { transform: translateZ(25px) rotateZ(0deg); }
+}
+
+#f5 span {
+	display: block;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin-top: -2px;
+	height: 4px;
+	width: 1px;
+	background: #666;
+	font-size: 30%;
+}
+
+#f5 span b {
+	font-weight: normal;
+	position: absolute;
+	bottom: 150%;
+	width: 5px;
+	left: -2px;
+	overflow: hidden;
+}
+
+/* Inner rings */
+#f6 {
+	top: 122px;
+	left: 122px;
+	height: 92px;
+	width: 92px;
+	border-radius: 50%;
+	border: 1px solid #06F;
+	transform: translateZ(30px);
+}
+
+#f7 {
+	top: 130px;
+	left: 130px;
+	height: 72px;
+	width: 72px;
+	border-radius: 50%;
+	border: 2px solid #06F;
+	background: #000;
+	transform: translateZ(34px);
+	animation: f7 6s linear infinite;
+}
+
+@keyframes f7 {
+	from { transform: translateZ(34px) rotateZ(0deg); opacity: 1; }
+	10% { transform: translateZ(34px) rotateZ(36deg); opacity: 0; }
+	20% { transform: translateZ(34px) rotateZ(72deg); opacity: 1; }
+	70% { transform: translateZ(34px) rotateZ(252deg); opacity: 1; }
+	80% { transform: translateZ(34px) rotateZ(288deg); opacity: 0; }
+	90% { transform: translateZ(34px) rotateZ(324deg); opacity: 1; }
+	to { transform: translateZ(34px) rotateZ(360deg); }
+}
+
+#f71 {
+	top: -12px;
+	left: 34px;
+	height: 120px;
+	width: 2px;
+	background: #06F;
+	transform: translateZ(-1px);
+}
+
+#f72 {
+	top: -12px;
+	left: 34px;
+	height: 120px;
+	width: 2px;
+	background: #06F;
+	transform: translateZ(-1px) rotateZ(90deg);
+}
+
+#f8 {
+	top: 138px;
+	left: 138px;
+	height: 60px;
+	width: 60px;
+	border-radius: 50%;
+	border: 1px solid #009;
+	background: #000;
+	transform: translateZ(40px);
+	animation: f8 8s linear infinite;
+}
+
+@keyframes f8 {
+	from { transform: translateZ(40px) rotateZ(360deg); border-color: #009; opacity: 1; }
+	10% { transform: translateZ(40px) rotateZ(324deg); border-color: #009; opacity: 0; }
+	20% { transform: translateZ(40px) rotateZ(288deg); border-color: #009; opacity: 1; }
+	50% { transform: translateZ(40px) rotateZ(180deg); border-color: #09F; }
+	to { transform: translateZ(40px) rotateZ(0deg); border-color: #009; }
+}
+
+#f81 {
+	top: -10px;
+	left: 20px;
+	height: 100px;
+	width: 10px;
+	background: #009;
+	transform: translateZ(-1px);
+	border-radius: 5px;
+	animation: f8div 8s linear infinite;
+}
+
+#f82 {
+	top: -10px;
+	left: 20px;
+	height: 100px;
+	width: 10px;
+	background: #009;
+	transform: translateZ(-1px) rotateZ(90deg);
+	border-radius: 5px;
+	animation: f8div 8s linear infinite;
+}
+
+@keyframes f8div {
+	from { background: #009; }
+	50% { background: #09F; }
+	to { background: #009; }
+}
+
+/* Center dot */
+#f9 {
+	top: 158px;
+	left: 158px;
+	height: 20px;
+	width: 20px;
+	border-radius: 50%;
+	border: 1px solid #06F;
+	transform: translateZ(50px);
+}
+
+#f9 span {
+	top: 6px;
+	left: 6px;
+	position: absolute;
+	display: block;
+	height: 8px;
+	width: 8px;
+	background: #06F;
+	border-radius: 50%;
+	transform: translateZ(1px);
+}
+
+/* =================================================================
+   CONNECTION LOG PANEL (Custom Addition)
+   ================================================================= */
+#connection-log-panel {
+	position: fixed;
+	bottom: 140px;
+	left: 120px;
+	width: 250px;
+	height: 200px;
+	background: rgba(0, 0, 0, 0.9);
+	border: 1px solid #666;
+	padding: 5px;
+	font-size: 10px;
+	color: #666;
+	overflow: hidden;
+}
+
+.log-title {
+	font-size: 11px;
+	margin-bottom: 5px;
+	color: #09F;
+	text-align: center;
+}
+
+#connection-log {
+	height: 180px;
+	overflow-y: auto;
+	scrollbar-width: thin;
+	scrollbar-color: #666 #000;
+}
+
+#connection-log::-webkit-scrollbar {
+	width: 4px;
+}
+
+#connection-log::-webkit-scrollbar-track {
+	background: #000;
+}
+
+#connection-log::-webkit-scrollbar-thumb {
+	background: #666;
+}
+
+.log-entry {
+	margin: 2px 0;
+	font-family: 'Courier New', monospace;
+}
+
+.log-entry.local {
+	color: #0FF;
+	text-shadow: 0 0 2px #0FF;
+}
+
+.log-entry.public {
+	color: #666;
+}
+
+.log-entry.attack {
+	color: #F00;
+	text-shadow: 0 0 2px #F00;
+	animation: alert-blink 0.5s infinite;
+}
+
+/* =================================================================
+   ATTACK STATE - Color Overrides
+   ================================================================= */
+body.attack-mode #container {
+	border-color: #F00;
+	box-shadow: 0 0 20px #F00;
+}
+
+body.attack-mode #f3,
+body.attack-mode #f7,
+body.attack-mode #f8 {
+	border-color: #F00 !important;
+	box-shadow: 0 0 10px #F00 !important;
+}
+
+body.attack-mode #f1 {
+	border-color: #F00 !important;
+}
+
+body.attack-mode #f31 span,
+body.attack-mode #f31 span b {
+	border-color: #F00 !important;
+	background: #F00 !important;
+}
+
+body.attack-mode #f9,
+body.attack-mode #f9 span {
+	border-color: #F00 !important;
+	background: #F00 !important;
+}
+
+body.attack-mode #gotchi-face {
+	color: #F00;
+	text-shadow: 0 0 10px #F00;
+}
