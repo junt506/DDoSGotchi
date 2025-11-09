@@ -65,6 +65,12 @@ if errorlevel 1 (
     pip install netifaces --user
 )
 
+python -c "import aiohttp" 2>nul
+if errorlevel 1 (
+    echo Installing aiohttp...
+    pip install aiohttp --user
+)
+
 echo [OK] Python dependencies installed
 echo.
 

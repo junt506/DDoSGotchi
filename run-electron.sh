@@ -66,6 +66,11 @@ if ! python3 -c "import netifaces" 2>/dev/null; then
     pip3 install netifaces --user
 fi
 
+if ! python3 -c "import aiohttp" 2>/dev/null; then
+    echo -e "${YELLOW}⚠${NC}  Installing aiohttp..."
+    pip3 install aiohttp --user
+fi
+
 echo -e "${GREEN}✓${NC} Python dependencies OK"
 echo ""
 
