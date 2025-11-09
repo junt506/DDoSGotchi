@@ -675,31 +675,37 @@ body.mode-attack #figure {
    ============================================================================ */
 #graphs-area {
   display: flex;
-  gap: 20px;
-  padding: 0 20px 20px 20px;
-  height: 180px;
+  gap: 30px;
+  padding: 20px 30px;
+  height: 300px;
 }
 
 .graph-container {
   flex: 1;
   background: rgba(0, 255, 0, 0.05);
   border: 2px solid #0F0;
-  padding: 10px;
-  box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+  padding: 15px;
+  box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+  border-radius: 8px;
 }
 
 .graph-title {
-  font-size: 12px;
+  font-size: 14px;
   color: #0F0;
-  margin-bottom: 5px;
+  margin-bottom: 10px;
   text-align: center;
   font-weight: bold;
+  text-shadow: 0 0 8px #0F0;
+  letter-spacing: 2px;
 }
 
 canvas {
   display: block;
   width: 100%;
   height: 100%;
+  image-rendering: crisp-edges;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
 }
 
 /* ============================================================================
