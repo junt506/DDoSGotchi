@@ -182,9 +182,6 @@ function connectWebSocket() {
 // ============================================================================
 
 function updateUI(data) {
-    // Skip updates if intro animation is still playing
-    if (!isIntroComplete) return;
-
     // Update attack mode state
     const wasAttackMode = isAttackMode;
     isAttackMode = data.attack_detected || false;
