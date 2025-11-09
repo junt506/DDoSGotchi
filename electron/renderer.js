@@ -44,6 +44,8 @@ let ws = null;
 let reconnectInterval = null;
 let isAttackMode = false;
 let visualization = null;
+let startupVisualization = null;
+let isStartupComplete = false;
 
 // Graph data storage
 const maxDataPoints = 120; // Increased for smoother graphs
@@ -67,10 +69,8 @@ let protocolData = {TCP: 0, UDP: 0, ICMP: 0, OTHER: 0};
 function init() {
     console.log('DDoS Gotchi v3.0 - Neural Nexus Initializing...');
 
-    // Initialize Neural Nexus visualization
-    const centerDisplay = document.getElementById('center-display');
-    visualization = new NeuralNexusVisualization(centerDisplay);
-    console.log('✓ Neural Nexus visualization initialized');
+    // Start Xbox-inspired startup animation
+    playStartupAnimation();
 
     // Generate protocol chart
     generateProtocolChart();
@@ -89,6 +89,62 @@ function init() {
     document.body.classList.add('mode-normal');
 
     console.log('Initialization complete');
+}
+
+// ============================================================================
+// STARTUP ANIMATION - Xbox-Inspired Boot Sequence
+// ============================================================================
+
+function playStartupAnimation() {
+    console.log('▶ Starting Xbox-style boot animation...');
+
+    // Create startup visualization in the startup container
+    const startupContainer = document.getElementById('startup-blob-container');
+    startupVisualization = new NeuralNexusVisualization(startupContainer);
+    console.log('✓ Startup blob initialized');
+
+    // Timeline:
+    // 0-1s: Blob visible, small, centered
+    // 1-4s: Zoom animation (CSS handles this)
+    // 4s: Start crossfade (blob fades out, dashboard fades in)
+    // 5s: Complete - remove startup overlay, move visualization to center
+
+    // At 4 seconds: Begin crossfade
+    setTimeout(() => {
+        console.log('▶ Crossfade: Startup → Dashboard');
+        const overlay = document.getElementById('startup-overlay');
+        const app = document.getElementById('app');
+
+        // Fade out startup overlay
+        overlay.classList.add('fade-out');
+
+        // Fade in dashboard
+        app.classList.add('visible');
+    }, 4000);
+
+    // At 5 seconds: Complete startup, initialize main visualization
+    setTimeout(() => {
+        console.log('✓ Startup animation complete');
+
+        // Destroy startup visualization
+        if (startupVisualization) {
+            startupVisualization.destroy();
+            startupVisualization = null;
+        }
+
+        // Remove startup overlay from DOM
+        const overlay = document.getElementById('startup-overlay');
+        if (overlay) {
+            overlay.remove();
+        }
+
+        // Initialize main Neural Nexus visualization
+        const centerDisplay = document.getElementById('center-display');
+        visualization = new NeuralNexusVisualization(centerDisplay);
+        console.log('✓ Main Neural Nexus visualization initialized');
+
+        isStartupComplete = true;
+    }, 5000);
 }
 
 // Generate protocol distribution chart
@@ -186,8 +242,8 @@ function updateUI(data) {
     const wasAttackMode = isAttackMode;
     isAttackMode = data.attack_detected || false;
 
-    // Update visualization attack state
-    if (visualization) {
+    // Update visualization attack state (only if startup is complete)
+    if (isStartupComplete && visualization) {
         visualization.setAttackMode(isAttackMode);
     }
 
