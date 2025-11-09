@@ -38,9 +38,13 @@ class DDoSGotchiBackend:
         self.connection_check_interval = 1.0
         self.refresh_interval = 15.0
 
-        # Threat Intelligence (optional AbuseIPDB key from environment)
+        # Threat Intelligence (optional API keys from environment)
         abuseipdb_key = os.environ.get('ABUSEIPDB_API_KEY')
-        self.threat_intel = ThreatIntelligence(abuseipdb_key=abuseipdb_key)
+        enable_greynoise = os.environ.get('ENABLE_GREYNOISE', '').lower() in ('true', '1', 'yes')
+        self.threat_intel = ThreatIntelligence(
+            abuseipdb_key=abuseipdb_key,
+            enable_greynoise=enable_greynoise
+        )
         self.ip_threats = {}  # IP -> threat data
         self.threat_check_queue = asyncio.Queue()
         self.last_threat_check = time.time()
@@ -225,8 +229,6 @@ class DDoSGotchiBackend:
         ips_to_check = ips_to_check[:1]
 
         if ips_to_check:
-            print(f"🔍 Checking {len(ips_to_check)} new IP(s) for threats: {', '.join(ips_to_check)}")
-
             # Check IPs sequentially to respect rate limits
             results = []
             for ip in ips_to_check:
@@ -236,29 +238,25 @@ class DDoSGotchiBackend:
                 except Exception as e:
                     results.append(e)
 
-            # Store results and report threats
+            # Store results and report only threats (benign IPs not logged to reduce spam)
             for ip, result in zip(ips_to_check, results):
                 if isinstance(result, Exception):
-                    print(f"   ❌ Error checking {ip}: {result}")
-                    continue
+                    continue  # Silently skip errors
 
                 self.ip_threats[ip] = result
 
-                # Debug: Log the result for each IP
+                # Only log threats - keep console clean
                 if result.get('is_threat'):
                     threat_level = result.get('threat_level', 'unknown')
                     confidence = result.get('confidence', 0)
                     sources = ', '.join(result.get('sources', []))
                     tags = ', '.join(result.get('tags', []))
-                    print(f"   ⚠️  THREAT DETECTED: {ip}")
-                    print(f"      Level: {threat_level.upper()} | Confidence: {confidence}%")
-                    print(f"      Sources: {sources}")
+                    print(f"\n⚠️  THREAT DETECTED: {ip}")
+                    print(f"   Level: {threat_level.upper()} | Confidence: {confidence}%")
+                    print(f"   Sources: {sources}")
                     if tags:
-                        print(f"      Tags: {tags}")
-                else:
-                    # Log benign results too for debugging
-                    sources = ', '.join(result.get('sources', ['none']))
-                    print(f"   ✓ {ip}: BENIGN (sources: {sources})")
+                        print(f"   Tags: {tags}")
+                    print()
 
         # Clean up old entries (keep cache fresh)
         if len(self.ip_threats) > 500:
@@ -377,7 +375,10 @@ class DDoSGotchiBackend:
             print("Waiting for Electron frontend to connect...")
             print("")
             print("🛡️  Threat Intelligence Status:")
-            print(f"   ✓ GreyNoise: Enabled (free, no API key required)")
+            if self.threat_intel.enable_greynoise:
+                print(f"   ✓ GreyNoise: Enabled (set via ENABLE_GREYNOISE)")
+            else:
+                print(f"   ℹ GreyNoise: Disabled (set ENABLE_GREYNOISE=true to enable)")
             if self.threat_intel.abuseipdb_key:
                 print(f"   ✓ AbuseIPDB: Enabled (API key configured)")
             else:
