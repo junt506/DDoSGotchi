@@ -544,65 +544,130 @@ body.mode-attack #figure {
   box-shadow: 0 0 5px #0F0;
 }
 
-.log-entry {
-  margin: 4px 0;
-  padding: 6px 8px;
-  border-left: 3px solid #0F0;
-  background: rgba(0, 255, 0, 0.05);
-  position: relative;
-  border-radius: 2px;
+/* IP Entry Styling */
+.ip-entry {
+  margin: 8px 0;
+  padding: 10px;
+  border-left: 4px solid #0F0;
+  background: rgba(0, 255, 0, 0.08);
+  border-radius: 4px;
+  transition: all 0.2s ease;
 }
 
-.log-entry.local {
-  color: #0FF;
-  text-shadow: 0 0 3px #0FF;
+.ip-entry:hover {
+  background: rgba(0, 255, 0, 0.15);
+  transform: translateX(2px);
+}
+
+.ip-entry.local {
   border-left-color: #0FF;
   background: rgba(0, 255, 255, 0.1);
-  font-weight: bold;
 }
 
-.log-entry.public {
-  color: #0F0;
+.ip-entry.local:hover {
+  background: rgba(0, 255, 255, 0.18);
 }
 
-/* New connections - RED highlight (refreshes every 4 seconds) */
-.log-entry.new-connection {
-  color: #F00 !important;
-  text-shadow: 0 0 5px #F00 !important;
+.ip-entry.public {
+  border-left-color: #0F0;
+}
+
+/* New connections - RED highlight */
+.ip-entry.new-connection {
   border-left-color: #F00 !important;
   background: rgba(255, 0, 0, 0.15) !important;
-  font-weight: bold;
   animation: pulse-red 1s ease-in-out infinite;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
 }
 
 @keyframes pulse-red {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+  50% { opacity: 0.8; }
 }
 
-.log-entry.new::before {
-  content: 'NEW';
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 10px;
-  background: #0F0;
-  color: #000;
-  padding: 2px 6px;
-  border-radius: 3px;
+/* IP Header */
+.ip-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 5px;
+  font-size: 14px;
   font-weight: bold;
-  animation: fade-badge 3s forwards;
 }
 
-.log-entry.local.new::before {
-  background: #0FF;
+.ip-label {
+  background: rgba(0, 255, 0, 0.2);
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 10px;
+  letter-spacing: 1px;
 }
 
-@keyframes fade-badge {
-  0% { opacity: 1; }
-  70% { opacity: 1; }
-  100% { opacity: 0; }
+.ip-entry.local .ip-label {
+  background: rgba(0, 255, 255, 0.3);
+  color: #0FF;
+}
+
+.ip-entry.new-connection .ip-label {
+  background: rgba(255, 0, 0, 0.3);
+  color: #F00;
+}
+
+.ip-address {
+  color: #0F0;
+  text-shadow: 0 0 5px #0F0;
+  flex: 1;
+  font-family: 'Courier New', monospace;
+}
+
+.ip-entry.local .ip-address {
+  color: #0FF;
+  text-shadow: 0 0 5px #0FF;
+}
+
+.ip-entry.new-connection .ip-address {
+  color: #F00;
+  text-shadow: 0 0 5px #F00;
+}
+
+.conn-count {
+  color: #0F0;
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+/* Port Info */
+.port-info {
+  font-size: 11px;
+  color: #0F0;
+  opacity: 0.7;
+  margin-left: 10px;
+  font-family: 'Courier New', monospace;
+}
+
+.ip-entry.local .port-info {
+  color: #0FF;
+}
+
+.ip-entry.new-connection .port-info {
+  color: #F00;
+}
+
+/* Timestamp */
+.ip-timestamp {
+  font-size: 10px;
+  color: #0F0;
+  opacity: 0.6;
+  margin-left: 10px;
+  margin-top: 3px;
+}
+
+.ip-entry.local .ip-timestamp {
+  color: #0FF;
+}
+
+.ip-entry.new-connection .ip-timestamp {
+  color: #F00;
 }
 
 /* ============================================================================

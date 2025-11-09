@@ -6,6 +6,8 @@ function createWindow() {
     width: 1400,
     height: 900,
     backgroundColor: '#000000',
+    transparent: true,
+    opacity: 0.95,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false

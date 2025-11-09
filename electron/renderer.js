@@ -52,9 +52,10 @@ let packetLossHistory = [];
 let timestampHistory = [];
 
 // Connection tracking - refresh every 4 seconds
-let allConnections = new Map(); // Map<connectionId, {conn, timestamp, isNew}>
+let connectionsByIP = new Map(); // Map<ip, {firstSeen, lastSeen, ports: Set, connCount, isLocal}>
 let maxLogEntries = 50;
 let connectionLogRefreshInterval = null;
+let lastRefreshTime = 0;
 
 // Activity bars
 let activityData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -243,29 +244,45 @@ function updateQuote(customQuote = null, checkAttack = true) {
     }
 }
 
-// Track connections with timestamps
+// Track connections grouped by IP
 function trackConnections(connections) {
     if (!connections || connections.length === 0) return;
 
     const now = Date.now();
+    const currentIPs = new Set();
 
     connections.forEach(conn => {
-        const connectionId = `${conn.remote_ip}:${conn.remote_port}`;
+        const ip = conn.remote_ip;
+        currentIPs.add(ip);
 
-        if (!allConnections.has(connectionId)) {
-            // New connection
-            allConnections.set(connectionId, {
-                conn: conn,
-                timestamp: now,
-                isNew: true
+        const isLocal = ip.startsWith('192.168.') ||
+                       ip.startsWith('10.') ||
+                       ip.startsWith('172.');
+
+        if (!connectionsByIP.has(ip)) {
+            // New IP
+            connectionsByIP.set(ip, {
+                firstSeen: now,
+                lastSeen: now,
+                ports: new Set([conn.remote_port]),
+                localPorts: new Set([conn.local_port]),
+                connCount: 1,
+                isLocal: isLocal
             });
+        } else {
+            // Update existing IP
+            const entry = connectionsByIP.get(ip);
+            entry.lastSeen = now;
+            entry.ports.add(conn.remote_port);
+            entry.localPorts.add(conn.local_port);
+            entry.connCount = connections.filter(c => c.remote_ip === ip).length;
         }
     });
 
-    // Remove old connections (older than 30 seconds)
-    for (const [id, entry] of allConnections.entries()) {
-        if (now - entry.timestamp > 30000) {
-            allConnections.delete(id);
+    // Remove IPs not seen in last 30 seconds
+    for (const [ip, entry] of connectionsByIP.entries()) {
+        if (now - entry.lastSeen > 30000) {
+            connectionsByIP.delete(ip);
         }
     }
 }
@@ -273,39 +290,80 @@ function trackConnections(connections) {
 // Refresh connection log every 4 seconds
 function refreshConnectionLog() {
     const logEl = document.getElementById('connection-log');
-    logEl.innerHTML = ''; // Clear log
+    const totalIPsEl = document.getElementById('total-ips');
+    const newIPsEl = document.getElementById('new-ips');
 
     const now = Date.now();
-    const sortedConnections = Array.from(allConnections.entries())
-        .sort((a, b) => b[1].timestamp - a[1].timestamp); // Newest first
 
-    sortedConnections.slice(0, maxLogEntries).forEach(([connectionId, entry]) => {
-        const conn = entry.conn;
-        const age = now - entry.timestamp;
-        const isNew = age < 4000; // New if less than 4 seconds old
+    // Sort IPs by most recent activity
+    const sortedIPs = Array.from(connectionsByIP.entries())
+        .sort((a, b) => b[1].lastSeen - a[1].lastSeen);
 
-        const isLocal = conn.remote_ip.startsWith('192.168.') ||
-                       conn.remote_ip.startsWith('10.') ||
-                       conn.remote_ip.startsWith('172.');
+    // Count new IPs (first seen in last 4 seconds)
+    const newCount = sortedIPs.filter(([ip, entry]) => (now - entry.firstSeen) < 4000).length;
 
-        const logEntry = document.createElement('div');
+    // Update summary
+    totalIPsEl.textContent = `${sortedIPs.length} unique IP${sortedIPs.length !== 1 ? 's' : ''}`;
+    newIPsEl.textContent = `${newCount} new`;
+    newIPsEl.style.color = newCount > 0 ? '#F00' : '#0F0';
 
-        // Red for new connections, green for existing
+    // Clear and rebuild log
+    logEl.innerHTML = '';
+
+    sortedIPs.slice(0, maxLogEntries).forEach(([ip, entry]) => {
+        const age = now - entry.firstSeen;
+        const isNew = age < 4000;
+
+        const ipEntry = document.createElement('div');
+
+        // Red for new IPs, green for existing, cyan for local
         if (isNew) {
-            logEntry.className = `log-entry new-connection ${isLocal ? 'local' : 'public'}`;
+            ipEntry.className = `ip-entry new-connection ${entry.isLocal ? 'local' : 'public'}`;
         } else {
-            logEntry.className = `log-entry ${isLocal ? 'local' : 'public'}`;
+            ipEntry.className = `ip-entry ${entry.isLocal ? 'local' : 'public'}`;
         }
 
-        const prefix = isLocal ? 'LOCAL' : 'REMOTE';
-        const timestamp = new Date(entry.timestamp).toLocaleTimeString();
-        logEntry.textContent = `[${timestamp}] ${prefix} ${conn.remote_ip}:${conn.remote_port} → :${conn.local_port}`;
+        // Create IP header
+        const ipHeader = document.createElement('div');
+        ipHeader.className = 'ip-header';
 
-        logEl.appendChild(logEntry);
+        const ipLabel = document.createElement('span');
+        ipLabel.className = 'ip-label';
+        const prefix = entry.isLocal ? 'LOCAL' : 'REMOTE';
+        ipLabel.textContent = `${prefix}`;
 
-        // Mark as not new after first display
-        entry.isNew = false;
+        const ipAddress = document.createElement('span');
+        ipAddress.className = 'ip-address';
+        ipAddress.textContent = ip;
+
+        const connCount = document.createElement('span');
+        connCount.className = 'conn-count';
+        connCount.textContent = `${entry.connCount} conn${entry.connCount !== 1 ? 's' : ''}`;
+
+        ipHeader.appendChild(ipLabel);
+        ipHeader.appendChild(ipAddress);
+        ipHeader.appendChild(connCount);
+
+        // Create port info
+        const portInfo = document.createElement('div');
+        portInfo.className = 'port-info';
+        const portsArray = Array.from(entry.ports).slice(0, 5);
+        const localPortsArray = Array.from(entry.localPorts).slice(0, 3);
+        portInfo.textContent = `Ports: ${portsArray.join(', ')}${entry.ports.size > 5 ? '...' : ''} → ${localPortsArray.join(', ')}`;
+
+        // Create timestamp
+        const timestamp = document.createElement('div');
+        timestamp.className = 'ip-timestamp';
+        timestamp.textContent = `First seen: ${new Date(entry.firstSeen).toLocaleTimeString()}`;
+
+        ipEntry.appendChild(ipHeader);
+        ipEntry.appendChild(portInfo);
+        ipEntry.appendChild(timestamp);
+
+        logEl.appendChild(ipEntry);
     });
+
+    lastRefreshTime = now;
 }
 
 function updateActivityBars(totalConnections) {
@@ -328,8 +386,14 @@ function updateTime() {
 }
 
 // ============================================================================
-// GRAPHS - FASTER UPDATE FOR SMOOTHER DISPLAY
+// GRAPHS - KIBANA-STYLE INTERACTIVE GRAPHS
 // ============================================================================
+
+// Graph state for interactivity
+const graphState = {
+    latency: { hovering: false, hoverIndex: -1 },
+    packetloss: { hovering: false, hoverIndex: -1 }
+};
 
 function updateGraphs(latency, packetLoss) {
     // Add to history
@@ -346,11 +410,11 @@ function updateGraphs(latency, packetLoss) {
     }
 
     // Draw both graphs
-    drawGraph('latency-graph', latencyHistory, '#0F0', 200, timestampHistory);
-    drawGraph('packetloss-graph', packetLossHistory, '#F00', 100, timestampHistory);
+    drawInteractiveGraph('latency-graph', latencyHistory, '#0F0', 200, timestampHistory, 'latency');
+    drawInteractiveGraph('packetloss-graph', packetLossHistory, '#F00', 100, timestampHistory, 'packetloss');
 }
 
-function drawGraph(canvasId, data, color, maxValue, timestamps) {
+function drawInteractiveGraph(canvasId, data, color, maxValue, timestamps, graphKey) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
 
@@ -366,39 +430,45 @@ function drawGraph(canvasId, data, color, maxValue, timestamps) {
 
     if (data.length < 2) return;
 
-    // Draw grid
-    ctx.strokeStyle = 'rgba(0, 255, 0, 0.1)';
+    const pointSpacing = width / (maxDataPoints - 1);
+
+    // Draw enhanced grid with more lines
+    ctx.strokeStyle = 'rgba(0, 255, 0, 0.08)';
     ctx.lineWidth = 1;
-    for (let i = 0; i <= 4; i++) {
-        const y = (graphHeight / 4) * i;
+    for (let i = 0; i <= 8; i++) {
+        const y = (graphHeight / 8) * i;
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(width, y);
         ctx.stroke();
     }
 
-    // Fill area under the line for smoother look
+    // Draw vertical grid lines
+    const verticalGridCount = 10;
+    for (let i = 0; i <= verticalGridCount; i++) {
+        const x = (width / verticalGridCount) * i;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, graphHeight);
+        ctx.stroke();
+    }
+
+    // Fill area under the line
     ctx.fillStyle = color.replace(')', ', 0.1)').replace('rgb', 'rgba').replace('#0F0', 'rgba(0, 255, 0, 0.1)').replace('#F00', 'rgba(255, 0, 0, 0.1)');
     ctx.beginPath();
-
-    const pointSpacing = width / (maxDataPoints - 1);
-
-    // Start from bottom left
     ctx.moveTo(0, graphHeight);
 
-    // Draw curve
     data.forEach((value, index) => {
         const x = index * pointSpacing;
         const y = graphHeight - (value / maxValue) * graphHeight;
         ctx.lineTo(x, y);
     });
 
-    // Complete the area
     ctx.lineTo((data.length - 1) * pointSpacing, graphHeight);
     ctx.closePath();
     ctx.fill();
 
-    // Draw data line on top
+    // Draw data line
     ctx.strokeStyle = color;
     ctx.lineWidth = 2;
     ctx.shadowBlur = 5;
@@ -419,14 +489,18 @@ function drawGraph(canvasId, data, color, maxValue, timestamps) {
     ctx.stroke();
     ctx.shadowBlur = 0;
 
-    // Draw time labels
+    // Draw enhanced time labels (more frequent)
     if (timestamps && timestamps.length > 0) {
-        ctx.fillStyle = 'rgba(0, 255, 0, 0.6)';
+        ctx.fillStyle = 'rgba(0, 255, 0, 0.5)';
         ctx.font = '9px Courier New';
         ctx.textAlign = 'center';
 
-        // Show labels at start, middle, and end
-        const labelIndices = [0, Math.floor(data.length / 2), data.length - 1];
+        // Smart time formatting - show more labels
+        const labelCount = Math.min(6, data.length);
+        const labelIndices = [];
+        for (let i = 0; i < labelCount; i++) {
+            labelIndices.push(Math.floor((data.length - 1) * (i / (labelCount - 1))));
+        }
 
         labelIndices.forEach(index => {
             if (index < timestamps.length) {
@@ -439,6 +513,119 @@ function drawGraph(canvasId, data, color, maxValue, timestamps) {
                 ctx.fillText(time, x, height - 5);
             }
         });
+    }
+
+    // Draw crosshair and tooltip if hovering
+    const state = graphState[graphKey];
+    if (state && state.hovering && state.hoverIndex >= 0 && state.hoverIndex < data.length) {
+        const hoverX = state.hoverIndex * pointSpacing;
+        const hoverY = graphHeight - (data[state.hoverIndex] / maxValue) * graphHeight;
+
+        // Draw vertical crosshair line
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(hoverX, 0);
+        ctx.lineTo(hoverX, graphHeight);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Draw horizontal crosshair line
+        ctx.beginPath();
+        ctx.moveTo(0, hoverY);
+        ctx.lineTo(width, hoverY);
+        ctx.stroke();
+
+        // Highlight the point
+        ctx.fillStyle = color;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = color;
+        ctx.beginPath();
+        ctx.arc(hoverX, hoverY, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Draw tooltip
+        const value = data[state.hoverIndex].toFixed(2);
+        const timestamp = timestamps[state.hoverIndex];
+        const timeStr = timestamp.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+
+        const tooltipText = `${timeStr}: ${value}`;
+        ctx.font = '11px Courier New';
+        const textWidth = ctx.measureText(tooltipText).width;
+
+        // Position tooltip above the point, adjust if near edges
+        let tooltipX = hoverX - textWidth / 2 - 5;
+        let tooltipY = hoverY - 35;
+
+        // Keep tooltip within canvas bounds
+        if (tooltipX < 0) tooltipX = 5;
+        if (tooltipX + textWidth + 10 > width) tooltipX = width - textWidth - 15;
+        if (tooltipY < 0) tooltipY = hoverY + 25;
+
+        // Draw tooltip background
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+        ctx.fillRect(tooltipX, tooltipY, textWidth + 10, 20);
+
+        // Draw tooltip border
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(tooltipX, tooltipY, textWidth + 10, 20);
+
+        // Draw tooltip text
+        ctx.fillStyle = color;
+        ctx.fillText(tooltipText, tooltipX + 5, tooltipY + 14);
+    }
+
+    // Setup mouse events (only once per canvas)
+    if (!canvas.hasMouseEvents) {
+        canvas.hasMouseEvents = true;
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            // Scale for canvas resolution
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const scaledX = mouseX * scaleX;
+
+            // Find nearest data point
+            const index = Math.round(scaledX / pointSpacing);
+
+            if (index >= 0 && index < data.length) {
+                graphState[graphKey].hovering = true;
+                graphState[graphKey].hoverIndex = index;
+
+                // Redraw to show tooltip
+                if (graphKey === 'latency') {
+                    drawInteractiveGraph(canvasId, latencyHistory, color, maxValue, timestamps, graphKey);
+                } else {
+                    drawInteractiveGraph(canvasId, packetLossHistory, color, maxValue, timestamps, graphKey);
+                }
+            }
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            graphState[graphKey].hovering = false;
+            graphState[graphKey].hoverIndex = -1;
+
+            // Redraw without tooltip
+            if (graphKey === 'latency') {
+                drawInteractiveGraph(canvasId, latencyHistory, color, maxValue, timestamps, graphKey);
+            } else {
+                drawInteractiveGraph(canvasId, packetLossHistory, color, maxValue, timestamps, graphKey);
+            }
+        });
+
+        // Add cursor style
+        canvas.style.cursor = 'crosshair';
     }
 }
 
