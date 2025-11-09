@@ -389,6 +389,21 @@ function updateTime() {
 // GRAPHS - KIBANA-STYLE INTERACTIVE GRAPHS
 // ============================================================================
 
+// Helper function for rounded rectangles
+function roundRect(ctx, x, y, width, height, radius) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.arcTo(x + width, y, x + width, y + radius, radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.arcTo(x + width, y + height, x + width - radius, y + height, radius);
+    ctx.lineTo(x + radius, y + height);
+    ctx.arcTo(x, y + height, x, y + height - radius, radius);
+    ctx.lineTo(x, y + radius);
+    ctx.arcTo(x, y, x + radius, y, radius);
+    ctx.closePath();
+}
+
 // Graph state for interactivity
 const graphState = {
     latency: { hovering: false, hoverIndex: -1 },
@@ -421,63 +436,81 @@ function drawInteractiveGraph(canvasId, data, color, maxValue, timestamps, graph
     const ctx = canvas.getContext('2d');
     const width = canvas.width;
     const height = canvas.height;
-    const padding = 20;
-    const graphHeight = height - padding;
 
-    // Clear canvas
+    // Increased margins for better spacing
+    const marginTop = 30;
+    const marginBottom = 60;
+    const marginLeft = 60;
+    const marginRight = 30;
+
+    const graphWidth = width - marginLeft - marginRight;
+    const graphHeight = height - marginTop - marginBottom;
+
+    // Clear canvas with high quality
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, width, height);
 
     if (data.length < 2) return;
 
-    const pointSpacing = width / (maxDataPoints - 1);
+    const pointSpacing = graphWidth / (maxDataPoints - 1);
 
-    // Draw enhanced grid with more lines
-    ctx.strokeStyle = 'rgba(0, 255, 0, 0.08)';
+    // Draw enhanced grid with better quality
+    ctx.strokeStyle = 'rgba(0, 255, 0, 0.1)';
     ctx.lineWidth = 1;
-    for (let i = 0; i <= 8; i++) {
-        const y = (graphHeight / 8) * i;
+
+    // Horizontal grid lines
+    for (let i = 0; i <= 5; i++) {
+        const y = marginTop + (graphHeight / 5) * i;
         ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(width, y);
+        ctx.moveTo(marginLeft, y);
+        ctx.lineTo(marginLeft + graphWidth, y);
         ctx.stroke();
+
+        // Y-axis labels
+        const value = maxValue - (maxValue / 5) * i;
+        ctx.fillStyle = 'rgba(0, 255, 0, 0.6)';
+        ctx.font = '12px Courier New';
+        ctx.textAlign = 'right';
+        ctx.fillText(value.toFixed(1), marginLeft - 10, y + 4);
     }
 
-    // Draw vertical grid lines
-    const verticalGridCount = 10;
+    // Vertical grid lines (fewer to avoid clutter)
+    const verticalGridCount = 6;
     for (let i = 0; i <= verticalGridCount; i++) {
-        const x = (width / verticalGridCount) * i;
+        const x = marginLeft + (graphWidth / verticalGridCount) * i;
+        ctx.strokeStyle = 'rgba(0, 255, 0, 0.05)';
         ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, graphHeight);
+        ctx.moveTo(x, marginTop);
+        ctx.lineTo(x, marginTop + graphHeight);
         ctx.stroke();
     }
 
     // Fill area under the line
-    ctx.fillStyle = color.replace(')', ', 0.1)').replace('rgb', 'rgba').replace('#0F0', 'rgba(0, 255, 0, 0.1)').replace('#F00', 'rgba(255, 0, 0, 0.1)');
+    const areaColor = color === '#0F0' ? 'rgba(0, 255, 0, 0.15)' : 'rgba(255, 0, 0, 0.15)';
+    ctx.fillStyle = areaColor;
     ctx.beginPath();
-    ctx.moveTo(0, graphHeight);
+    ctx.moveTo(marginLeft, marginTop + graphHeight);
 
     data.forEach((value, index) => {
-        const x = index * pointSpacing;
-        const y = graphHeight - (value / maxValue) * graphHeight;
+        const x = marginLeft + index * pointSpacing;
+        const y = marginTop + graphHeight - (value / maxValue) * graphHeight;
         ctx.lineTo(x, y);
     });
 
-    ctx.lineTo((data.length - 1) * pointSpacing, graphHeight);
+    ctx.lineTo(marginLeft + (data.length - 1) * pointSpacing, marginTop + graphHeight);
     ctx.closePath();
     ctx.fill();
 
-    // Draw data line
+    // Draw data line with better quality
     ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.shadowBlur = 5;
+    ctx.lineWidth = 3;
+    ctx.shadowBlur = 8;
     ctx.shadowColor = color;
     ctx.beginPath();
 
     data.forEach((value, index) => {
-        const x = index * pointSpacing;
-        const y = graphHeight - (value / maxValue) * graphHeight;
+        const x = marginLeft + index * pointSpacing;
+        const y = marginTop + graphHeight - (value / maxValue) * graphHeight;
 
         if (index === 0) {
             ctx.moveTo(x, y);
@@ -489,14 +522,14 @@ function drawInteractiveGraph(canvasId, data, color, maxValue, timestamps, graph
     ctx.stroke();
     ctx.shadowBlur = 0;
 
-    // Draw enhanced time labels (more frequent)
+    // Draw time labels (fewer, non-overlapping)
     if (timestamps && timestamps.length > 0) {
-        ctx.fillStyle = 'rgba(0, 255, 0, 0.5)';
-        ctx.font = '9px Courier New';
+        ctx.fillStyle = 'rgba(0, 255, 0, 0.7)';
+        ctx.font = '11px Courier New';
         ctx.textAlign = 'center';
 
-        // Smart time formatting - show more labels
-        const labelCount = Math.min(6, data.length);
+        // Only show 4 time labels to avoid clutter
+        const labelCount = 4;
         const labelIndices = [];
         for (let i = 0; i < labelCount; i++) {
             labelIndices.push(Math.floor((data.length - 1) * (i / (labelCount - 1))));
@@ -504,13 +537,14 @@ function drawInteractiveGraph(canvasId, data, color, maxValue, timestamps, graph
 
         labelIndices.forEach(index => {
             if (index < timestamps.length) {
-                const x = index * pointSpacing;
+                const x = marginLeft + index * pointSpacing;
                 const time = timestamps[index].toLocaleTimeString('en-US', {
-                    hour: '2-digit',
+                    hour: 'numeric',
                     minute: '2-digit',
-                    second: '2-digit'
+                    second: '2-digit',
+                    hour12: true
                 });
-                ctx.fillText(time, x, height - 5);
+                ctx.fillText(time, x, height - 20);
             }
         });
     }
@@ -518,73 +552,124 @@ function drawInteractiveGraph(canvasId, data, color, maxValue, timestamps, graph
     // Draw crosshair and tooltip if hovering
     const state = graphState[graphKey];
     if (state && state.hovering && state.hoverIndex >= 0 && state.hoverIndex < data.length) {
-        const hoverX = state.hoverIndex * pointSpacing;
-        const hoverY = graphHeight - (data[state.hoverIndex] / maxValue) * graphHeight;
+        const hoverX = marginLeft + state.hoverIndex * pointSpacing;
+        const hoverY = marginTop + graphHeight - (data[state.hoverIndex] / maxValue) * graphHeight;
 
         // Draw vertical crosshair line
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.lineWidth = 1.5;
         ctx.setLineDash([5, 5]);
         ctx.beginPath();
-        ctx.moveTo(hoverX, 0);
-        ctx.lineTo(hoverX, graphHeight);
+        ctx.moveTo(hoverX, marginTop);
+        ctx.lineTo(hoverX, marginTop + graphHeight);
         ctx.stroke();
         ctx.setLineDash([]);
 
         // Draw horizontal crosshair line
         ctx.beginPath();
-        ctx.moveTo(0, hoverY);
-        ctx.lineTo(width, hoverY);
+        ctx.moveTo(marginLeft, hoverY);
+        ctx.lineTo(marginLeft + graphWidth, hoverY);
         ctx.stroke();
 
         // Highlight the point
         ctx.fillStyle = color;
-        ctx.shadowBlur = 10;
+        ctx.shadowBlur = 15;
         ctx.shadowColor = color;
         ctx.beginPath();
-        ctx.arc(hoverX, hoverY, 5, 0, Math.PI * 2);
+        ctx.arc(hoverX, hoverY, 6, 0, Math.PI * 2);
         ctx.fill();
         ctx.shadowBlur = 0;
 
-        // Draw tooltip
+        // Draw professional tooltip card
         const value = data[state.hoverIndex].toFixed(2);
         const timestamp = timestamps[state.hoverIndex];
         const timeStr = timestamp.toLocaleTimeString('en-US', {
-            hour: '2-digit',
+            hour: 'numeric',
             minute: '2-digit',
-            second: '2-digit'
+            second: '2-digit',
+            hour12: true
         });
 
-        const tooltipText = `${timeStr}: ${value}`;
-        ctx.font = '11px Courier New';
-        const textWidth = ctx.measureText(tooltipText).width;
+        const unit = graphKey === 'latency' ? ' ms' : '%';
 
-        // Position tooltip above the point, adjust if near edges
-        let tooltipX = hoverX - textWidth / 2 - 5;
-        let tooltipY = hoverY - 35;
+        // Tooltip dimensions
+        const tooltipWidth = 160;
+        const tooltipHeight = 60;
+        const tooltipPadding = 12;
+
+        // Position tooltip to the side or above, never overlapping
+        let tooltipX, tooltipY;
+
+        // Try to position to the right of the cursor
+        if (hoverX + 20 + tooltipWidth < width) {
+            tooltipX = hoverX + 20;
+            tooltipY = hoverY - tooltipHeight / 2;
+        }
+        // Try to position to the left
+        else if (hoverX - 20 - tooltipWidth > 0) {
+            tooltipX = hoverX - 20 - tooltipWidth;
+            tooltipY = hoverY - tooltipHeight / 2;
+        }
+        // Position above
+        else {
+            tooltipX = hoverX - tooltipWidth / 2;
+            tooltipY = hoverY - tooltipHeight - 20;
+        }
 
         // Keep tooltip within canvas bounds
-        if (tooltipX < 0) tooltipX = 5;
-        if (tooltipX + textWidth + 10 > width) tooltipX = width - textWidth - 15;
-        if (tooltipY < 0) tooltipY = hoverY + 25;
+        if (tooltipX < 10) tooltipX = 10;
+        if (tooltipX + tooltipWidth > width - 10) tooltipX = width - tooltipWidth - 10;
+        if (tooltipY < 10) tooltipY = 10;
+        if (tooltipY + tooltipHeight > height - 10) tooltipY = height - tooltipHeight - 10;
 
-        // Draw tooltip background
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
-        ctx.fillRect(tooltipX, tooltipY, textWidth + 10, 20);
+        // Draw tooltip shadow
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        ctx.shadowBlur = 15;
+        ctx.shadowOffsetX = 3;
+        ctx.shadowOffsetY = 3;
+
+        // Draw tooltip background with rounded corners
+        ctx.fillStyle = 'rgba(20, 20, 20, 0.95)';
+        roundRect(ctx, tooltipX, tooltipY, tooltipWidth, tooltipHeight, 8);
+        ctx.fill();
+
+        // Reset shadow
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
 
         // Draw tooltip border
         ctx.strokeStyle = color;
-        ctx.lineWidth = 1;
-        ctx.strokeRect(tooltipX, tooltipY, textWidth + 10, 20);
+        ctx.lineWidth = 2;
+        roundRect(ctx, tooltipX, tooltipY, tooltipWidth, tooltipHeight, 8);
+        ctx.stroke();
 
         // Draw tooltip text
+        ctx.fillStyle = '#FFF';
+        ctx.font = 'bold 13px Courier New';
+        ctx.textAlign = 'left';
+        ctx.fillText('Time:', tooltipX + tooltipPadding, tooltipY + 22);
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.font = '12px Courier New';
+        ctx.fillText(timeStr, tooltipX + tooltipPadding, tooltipY + 38);
+
+        ctx.fillStyle = '#FFF';
+        ctx.font = 'bold 13px Courier New';
+        ctx.fillText('Value:', tooltipX + tooltipPadding, tooltipY + tooltipHeight - 16);
+
         ctx.fillStyle = color;
-        ctx.fillText(tooltipText, tooltipX + 5, tooltipY + 14);
+        ctx.font = 'bold 14px Courier New';
+        ctx.fillText(value + unit, tooltipX + tooltipPadding + 50, tooltipY + tooltipHeight - 16);
     }
 
     // Setup mouse events (only once per canvas)
     if (!canvas.hasMouseEvents) {
         canvas.hasMouseEvents = true;
+
+        // Store margins for this canvas
+        const marginLeft = 60;
 
         canvas.addEventListener('mousemove', (e) => {
             const rect = canvas.getBoundingClientRect();
@@ -596,8 +681,11 @@ function drawInteractiveGraph(canvasId, data, color, maxValue, timestamps, graph
             const scaleY = canvas.height / rect.height;
             const scaledX = mouseX * scaleX;
 
+            // Adjust for left margin
+            const graphX = scaledX - marginLeft;
+
             // Find nearest data point
-            const index = Math.round(scaledX / pointSpacing);
+            const index = Math.round(graphX / pointSpacing);
 
             if (index >= 0 && index < data.length) {
                 graphState[graphKey].hovering = true;
