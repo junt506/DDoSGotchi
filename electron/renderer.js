@@ -591,6 +591,13 @@ function updateUI(data) {
     // Update stats
     document.getElementById('stat-connections').textContent = data.total_connections || 0;
     document.getElementById('stat-unique-ips').textContent = data.unique_ips || 0;
+
+    // Update threat count
+    const threatCount = data.threats?.malicious_count || 0;
+    const threatCountEl = document.getElementById('stat-threats');
+    threatCountEl.textContent = threatCount;
+    threatCountEl.style.color = threatCount > 0 ? '#FF0000' : '#00FF00';
+
     document.getElementById('stat-latency').textContent = `${data.latency || 0} ms`;
     document.getElementById('stat-packet-loss').textContent = `${(data.packet_loss || 0).toFixed(1)}%`;
 
@@ -614,7 +621,7 @@ function updateUI(data) {
 
     // Track connections
     if (data.connections) {
-        trackConnections(data.connections);
+        trackConnections(data.connections, data.threats);
     }
 
     // Update protocol distribution
@@ -658,11 +665,12 @@ function updateQuote(customQuote = null, checkAttack = true) {
 }
 
 // Track connections grouped by IP
-function trackConnections(connections) {
+function trackConnections(connections, threats = {}) {
     if (!connections || connections.length === 0) return;
 
     const now = Date.now();
     const currentIPs = new Set();
+    const threatData = threats?.ip_threat_data || {};
 
     connections.forEach(conn => {
         const ip = conn.remote_ip;
@@ -672,6 +680,9 @@ function trackConnections(connections) {
                        ip.startsWith('10.') ||
                        ip.startsWith('172.');
 
+        // Get threat info for this IP
+        const threat = threatData[ip] || null;
+
         if (!connectionsByIP.has(ip)) {
             // New IP
             connectionsByIP.set(ip, {
@@ -680,7 +691,8 @@ function trackConnections(connections) {
                 ports: new Set([conn.remote_port]),
                 localPorts: new Set([conn.local_port]),
                 connCount: 1,
-                isLocal: isLocal
+                isLocal: isLocal,
+                threat: threat
             });
         } else {
             // Update existing IP
@@ -689,6 +701,7 @@ function trackConnections(connections) {
             entry.ports.add(conn.remote_port);
             entry.localPorts.add(conn.local_port);
             entry.connCount = connections.filter(c => c.remote_ip === ip).length;
+            entry.threat = threat;  // Update threat data
         }
     });
 
@@ -749,6 +762,31 @@ function refreshConnectionLog() {
         const ipAddress = document.createElement('span');
         ipAddress.className = 'ip-address';
         ipAddress.textContent = ip;
+
+        // Add threat indicator if malicious
+        if (entry.threat && entry.threat.is_threat) {
+            const threatBadge = document.createElement('span');
+            threatBadge.className = 'threat-badge';
+            const threatLevel = entry.threat.threat_level || 'suspicious';
+            const confidence = entry.threat.confidence || 0;
+
+            if (threatLevel === 'malicious') {
+                threatBadge.textContent = `💀 MALICIOUS (${confidence}%)`;
+                threatBadge.style.background = '#8B0000';
+            } else if (threatLevel === 'suspicious') {
+                threatBadge.textContent = `⚠️ SUSPICIOUS (${confidence}%)`;
+                threatBadge.style.background = '#FF8C00';
+            }
+
+            threatBadge.style.color = '#FFF';
+            threatBadge.style.padding = '2px 6px';
+            threatBadge.style.borderRadius = '3px';
+            threatBadge.style.fontSize = '10px';
+            threatBadge.style.fontWeight = 'bold';
+            threatBadge.style.marginLeft = '6px';
+
+            ipAddress.appendChild(threatBadge);
+        }
 
         const connCount = document.createElement('span');
         connCount.className = 'conn-count';
@@ -836,6 +874,46 @@ async function showConnectionDetails(ip, entry) {
             ${Array.from(entry.ports).some(p => SUSPICIOUS_PORTS.has(p)) ?
                 `<div class="detail-row warning"><span class="detail-label">⚠️ Suspicious Ports:</span> <span class="detail-value">${Array.from(entry.ports).filter(p => SUSPICIOUS_PORTS.has(p)).join(', ')}</span></div>` : ''}
         </div>
+
+        ${entry.threat ? `
+        <div class="detail-section threat-section">
+            <h3>🛡️ Threat Intelligence</h3>
+            <div class="detail-row">
+                <span class="detail-label">Threat Level:</span>
+                <span class="detail-value" style="color: ${entry.threat.is_threat ? '#FF0000' : '#00FF00'}; font-weight: bold;">
+                    ${entry.threat.is_threat ? '⚠️ ' + entry.threat.threat_level.toUpperCase() : '✓ BENIGN'}
+                </span>
+            </div>
+            ${entry.threat.is_threat ? `
+                <div class="detail-row">
+                    <span class="detail-label">Confidence:</span>
+                    <span class="detail-value">${entry.threat.confidence}%</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Sources:</span>
+                    <span class="detail-value">${entry.threat.sources.join(', ')}</span>
+                </div>
+                ${entry.threat.tags && entry.threat.tags.length > 0 ? `
+                    <div class="detail-row">
+                        <span class="detail-label">Tags:</span>
+                        <span class="detail-value">${entry.threat.tags.join(', ')}</span>
+                    </div>
+                ` : ''}
+                ${entry.threat.details.greynoise ? `
+                    <div class="detail-row">
+                        <span class="detail-label">GreyNoise:</span>
+                        <span class="detail-value">${entry.threat.details.greynoise.classification} ${entry.threat.details.greynoise.name ? '- ' + entry.threat.details.greynoise.name : ''}</span>
+                    </div>
+                ` : ''}
+                ${entry.threat.details.abuseipdb ? `
+                    <div class="detail-row">
+                        <span class="detail-label">AbuseIPDB:</span>
+                        <span class="detail-value">Score: ${entry.threat.details.abuseipdb.abuse_score}%, Reports: ${entry.threat.details.abuseipdb.total_reports}</span>
+                    </div>
+                ` : ''}
+            ` : ''}
+        </div>
+        ` : ''}
 
         <div class="detail-section" id="geo-section">
             <h3>Geographic Information</h3>
