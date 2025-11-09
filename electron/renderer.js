@@ -57,8 +57,8 @@ let maxLogEntries = 50;
 let connectionLogRefreshInterval = null;
 let lastRefreshTime = 0;
 
-// Activity bars
-let activityData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+// Protocol distribution tracking
+let protocolData = {TCP: 0, UDP: 0, ICMP: 0, OTHER: 0};
 
 // ============================================================================
 // INITIALIZATION
@@ -72,8 +72,8 @@ function init() {
     visualization = new NeuralNexusVisualization(centerDisplay);
     console.log('✓ Neural Nexus visualization initialized');
 
-    // Generate activity bars
-    generateActivityBars();
+    // Generate protocol chart
+    generateProtocolChart();
 
     // Connect to backend
     connectWebSocket();
@@ -91,15 +91,47 @@ function init() {
     console.log('Initialization complete');
 }
 
-// Generate activity bars
-function generateActivityBars() {
-    const container = document.getElementById('activity-bars');
-    for (let i = 0; i < 10; i++) {
+// Generate protocol distribution chart
+function generateProtocolChart() {
+    const container = document.getElementById('protocol-chart');
+    const protocols = ['TCP', 'UDP', 'ICMP', 'OTHER'];
+    const colors = {
+        TCP: '#0F0',      // Green
+        UDP: '#0088FF',   // Blue
+        ICMP: '#FFA500',  // Orange
+        OTHER: '#888'     // Gray
+    };
+
+    protocols.forEach(protocol => {
+        const barContainer = document.createElement('div');
+        barContainer.className = 'protocol-bar-container';
+
+        const label = document.createElement('div');
+        label.className = 'protocol-label';
+        label.textContent = protocol;
+
+        const barWrapper = document.createElement('div');
+        barWrapper.className = 'protocol-bar-wrapper';
+
         const bar = document.createElement('div');
-        bar.className = 'activity-bar';
-        bar.style.height = '5px';
-        container.appendChild(bar);
-    }
+        bar.className = 'protocol-bar';
+        bar.id = `protocol-bar-${protocol.toLowerCase()}`;
+        bar.style.backgroundColor = colors[protocol];
+        bar.style.width = '0%';
+
+        const percentage = document.createElement('span');
+        percentage.className = 'protocol-percentage';
+        percentage.id = `protocol-pct-${protocol.toLowerCase()}`;
+        percentage.textContent = '0%';
+        percentage.style.color = colors[protocol];
+
+        barWrapper.appendChild(bar);
+        barContainer.appendChild(label);
+        barContainer.appendChild(barWrapper);
+        barContainer.appendChild(percentage);
+
+        container.appendChild(barContainer);
+    });
 }
 
 // ============================================================================
@@ -206,8 +238,10 @@ function updateUI(data) {
         trackConnections(data.recent_connections);
     }
 
-    // Update activity bars
-    updateActivityBars(data.total_connections);
+    // Update protocol distribution
+    if (data.protocol_distribution) {
+        updateProtocolDistribution(data.protocol_distribution);
+    }
 
     // Update graphs (faster for smoother display)
     updateGraphs(data.latency || 0, data.packet_loss || 0);
@@ -366,16 +400,39 @@ function refreshConnectionLog() {
     lastRefreshTime = now;
 }
 
-function updateActivityBars(totalConnections) {
-    // Shift data
-    activityData.shift();
-    activityData.push(totalConnections);
+function updateProtocolDistribution(distribution) {
+    // Update protocol data
+    protocolData = distribution;
 
-    // Update bar heights
-    const bars = document.querySelectorAll('.activity-bar');
-    bars.forEach((bar, index) => {
-        const height = Math.min(150, Math.max(5, (activityData[index] / 10) * 150));
-        bar.style.height = height + 'px';
+    // Calculate total
+    const total = distribution.TCP + distribution.UDP + distribution.ICMP + distribution.OTHER;
+
+    if (total === 0) {
+        // No connections, set all to 0%
+        ['tcp', 'udp', 'icmp', 'other'].forEach(protocol => {
+            const bar = document.getElementById(`protocol-bar-${protocol}`);
+            const pct = document.getElementById(`protocol-pct-${protocol}`);
+            if (bar && pct) {
+                bar.style.width = '0%';
+                pct.textContent = '0%';
+            }
+        });
+        return;
+    }
+
+    // Update each protocol bar
+    Object.keys(distribution).forEach(protocol => {
+        const count = distribution[protocol];
+        const percentage = Math.round((count / total) * 100);
+
+        const bar = document.getElementById(`protocol-bar-${protocol.toLowerCase()}`);
+        const pct = document.getElementById(`protocol-pct-${protocol.toLowerCase()}`);
+
+        if (bar && pct) {
+            // Smooth transition for bar width
+            bar.style.width = `${percentage}%`;
+            pct.textContent = `${percentage}%`;
+        }
     });
 }
 
