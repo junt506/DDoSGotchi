@@ -44,8 +44,6 @@ let ws = null;
 let reconnectInterval = null;
 let isAttackMode = false;
 let visualization = null;
-let introVisualization = null;
-let isIntroComplete = false;
 
 // Graph data storage
 const maxDataPoints = 120; // Increased for smoother graphs
@@ -69,11 +67,13 @@ let protocolData = {TCP: 0, UDP: 0, ICMP: 0, OTHER: 0};
 function init() {
     console.log('DDoS Gotchi v3.0 - Neural Nexus Initializing...');
 
-    // Start SVG draw animation
-    playDrawAnimation();
-
     // Generate protocol chart
     generateProtocolChart();
+
+    // Initialize visualization immediately
+    const centerDisplay = document.getElementById('center-display');
+    visualization = new NeuralNexusVisualization(centerDisplay);
+    console.log('✓ Neural Nexus visualization online');
 
     // Connect to backend
     connectWebSocket();
@@ -89,45 +89,6 @@ function init() {
     document.body.classList.add('mode-normal');
 
     console.log('Initialization complete');
-}
-
-// ============================================================================
-// SVG DRAW ANIMATION - Dashboard Wireframe Reveal
-// ============================================================================
-
-function playDrawAnimation() {
-    console.log('▶ Starting bar expansion intro animation...');
-
-    // Timeline:
-    // 0-1s: Wait
-    // 1-2s: Bars expand from center
-    // 1.5s: Title sequence fades in
-    // 2.5s: Black bars fade out (revealing text)
-    // 3.5-4.5s: Text slides away (up/down)
-    // 4.5s: Begin crossfade
-    // 5.5s: Complete - remove overlay, show dashboard
-
-    // At 4.5 seconds: Begin crossfade
-    setTimeout(() => {
-        console.log('▶ Initiating crossfade sequence...');
-        const overlay = document.getElementById('intro-animation-container');
-        const app = document.getElementById('app');
-        overlay.classList.add('fade-out');
-        app.classList.add('visible');
-    }, 4500);
-
-    // At 5.5 seconds: Complete animation
-    setTimeout(() => {
-        console.log('✓ Animation sequence complete');
-        const overlay = document.getElementById('intro-animation-container');
-        if (overlay) {
-            overlay.remove();
-        }
-        const centerDisplay = document.getElementById('center-display');
-        visualization = new NeuralNexusVisualization(centerDisplay);
-        console.log('✓ Main Neural Nexus visualization online');
-        isIntroComplete = true;
-    }, 5500);
 }
 
 // Generate protocol distribution chart
