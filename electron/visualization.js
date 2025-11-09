@@ -364,6 +364,34 @@ export class NeuralNexusVisualization {
 
     setAttackMode(isAttack) {
         this.isAttackMode = isAttack;
+
+        // Change colors when attack mode changes
+        if (this.dataNodes) {
+            const colors = this.dataNodes.geometry.attributes.color.array;
+            const targetColor = isAttack ? new THREE.Color('#ff0000') : new THREE.Color('#00ff00');
+
+            for (let i = 0; i < this.nodeCount; i++) {
+                colors[i * 3] = targetColor.r;
+                colors[i * 3 + 1] = targetColor.g;
+                colors[i * 3 + 2] = targetColor.b;
+            }
+
+            this.dataNodes.geometry.attributes.color.needsUpdate = true;
+        }
+
+        // Change trail colors too
+        if (this.trailSystem) {
+            const colors = this.trailSystem.geometry.attributes.color.array;
+            const targetColor = isAttack ? new THREE.Color('#ff0000') : new THREE.Color('#00ff00');
+
+            for (let i = 0; i < this.trailCount; i++) {
+                colors[i * 3] = targetColor.r;
+                colors[i * 3 + 1] = targetColor.g;
+                colors[i * 3 + 2] = targetColor.b;
+            }
+
+            this.trailSystem.geometry.attributes.color.needsUpdate = true;
+        }
     }
 
     animateTrailSystem() {
