@@ -221,15 +221,20 @@ class DDoSGotchiBackend:
         # Only check new IPs we haven't checked yet
         ips_to_check = [ip for ip in unique_ips if ip not in self.ip_threats]
 
-        # Limit to 5 new checks per iteration to avoid rate limiting
-        ips_to_check = ips_to_check[:5]
+        # Limit to 1 new check per iteration to respect API rate limits
+        ips_to_check = ips_to_check[:1]
 
         if ips_to_check:
             print(f"🔍 Checking {len(ips_to_check)} new IP(s) for threats: {', '.join(ips_to_check)}")
 
-            # Check IPs in parallel
-            tasks = [self.threat_intel.check_ip(ip) for ip in ips_to_check]
-            results = await asyncio.gather(*tasks, return_exceptions=True)
+            # Check IPs sequentially to respect rate limits
+            results = []
+            for ip in ips_to_check:
+                try:
+                    result = await self.threat_intel.check_ip(ip)
+                    results.append(result)
+                except Exception as e:
+                    results.append(e)
 
             # Store results and report threats
             for ip, result in zip(ips_to_check, results):

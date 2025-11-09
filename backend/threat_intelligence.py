@@ -21,6 +21,8 @@ class ThreatIntelligence:
         # Rate limiting
         self.last_abuseipdb_check = 0
         self.abuseipdb_delay = 1.0  # 1 second between checks (free tier: 1000/day)
+        self.last_greynoise_check = 0
+        self.greynoise_delay = 2.0  # 2 seconds between checks (free tier has stricter limits)
 
         # Statistics
         self.total_checks = 0
@@ -105,10 +107,16 @@ class ThreatIntelligence:
         Identifies internet scanners and malicious actors
         """
         try:
+            # Rate limiting
+            elapsed = time.time() - self.last_greynoise_check
+            if elapsed < self.greynoise_delay:
+                await asyncio.sleep(self.greynoise_delay - elapsed)
+
             url = f"https://api.greynoise.io/v3/community/{ip}"
             headers = {'Accept': 'application/json'}
 
             async with self.session.get(url, headers=headers, timeout=5) as response:
+                self.last_greynoise_check = time.time()
                 if response.status == 200:
                     data = await response.json()
 
@@ -155,8 +163,7 @@ class ThreatIntelligence:
             }
             params = {
                 'ipAddress': ip,
-                'maxAgeInDays': 90,
-                'verbose': True
+                'maxAgeInDays': '90'
             }
 
             async with self.session.get(url, headers=headers, params=params, timeout=10) as response:
