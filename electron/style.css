@@ -16,7 +16,7 @@ body {
 }
 
 /* ============================================================================
-   SVG DRAW ANIMATION - Dashboard Wireframe
+   SVG DRAW ANIMATION - Professional Dashboard Wireframe
    ============================================================================ */
 
 /* Animation overlay - fullscreen black background */
@@ -33,7 +33,7 @@ body {
   justify-content: center;
   pointer-events: none;
   opacity: 1;
-  transition: opacity 1s ease-out;
+  transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* SVG wireframe container */
@@ -46,19 +46,26 @@ body {
   opacity: 1;
 }
 
-/* Draw animation for all SVG elements */
+/* Draw animation for main structure elements */
 #dashboard-wireframe rect,
 #dashboard-wireframe line {
   stroke-dasharray: 2000;
   stroke-dashoffset: 2000;
-  animation: draw-stroke 2.5s ease-out forwards;
-  filter: drop-shadow(0 0 5px #0F0);
+  animation: draw-stroke 1.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  filter: drop-shadow(0 0 3px #0F0);
 }
 
+/* Text fade-in animation */
 #dashboard-wireframe text {
   opacity: 0;
-  animation: fade-in-text 0.5s ease-out forwards;
-  filter: drop-shadow(0 0 5px #0F0);
+  animation: fade-in-text 0.6s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+  filter: drop-shadow(0 0 2px #0F0);
+}
+
+/* Group animations for synchronized effects */
+#dashboard-wireframe g {
+  opacity: 0;
+  animation: fade-in-group 0.8s ease-out forwards;
 }
 
 @keyframes draw-stroke {
@@ -73,46 +80,193 @@ body {
   }
 }
 
-/* Staggered timing for dashboard elements */
-#header-border { animation-delay: 0s; }
-#header-divider { animation-delay: 0.3s; }
-
-#left-panel-border { animation-delay: 0.6s; }
-#left-panel-title { animation-delay: 1.2s; }
-#left-divider { animation-delay: 1.4s; }
-#protocol-title { animation-delay: 1.6s; }
-
-#center-border { animation-delay: 0.9s; }
-
-#right-panel-border { animation-delay: 1.2s; }
-#right-panel-title { animation-delay: 1.8s; }
-
-#graph-left-border { animation-delay: 1.5s; }
-#graph-left-title { animation-delay: 2.1s; }
-
-#graph-right-border { animation-delay: 1.8s; }
-#graph-right-title { animation-delay: 2.4s; }
-
-/* Blob container - smooth fade-in after wireframe completes */
-#intro-blob-container {
-  position: absolute;
-  width: 680px;
-  height: 545px;
-  top: 387px;  /* Matches center-border position */
-  left: 360px;
-  opacity: 0;
-  animation: blob-fade-in 1.5s ease-out forwards;
-  animation-delay: 3.5s; /* Start after wireframe is mostly drawn */
+@keyframes fade-in-group {
+  to {
+    opacity: 1;
+  }
 }
 
-@keyframes blob-fade-in {
+/* Digital glitch effect for loading text */
+@keyframes digital-glitch {
+  0%, 100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  10% {
+    opacity: 0.8;
+    transform: translateX(-2px);
+  }
+  20% {
+    opacity: 1;
+    transform: translateX(2px);
+  }
+  30% {
+    opacity: 0.9;
+    transform: translateX(-1px);
+  }
+}
+
+/* Staggered timing for wireframe elements - precise orchestration */
+/* Header elements */
+#header-border { animation-delay: 0s; }
+#header-divider { animation-delay: 0.2s; }
+#header-title { animation-delay: 0.4s; }
+#header-face { animation-delay: 0.5s; }
+#header-status { animation-delay: 0.6s; }
+#header-time { animation-delay: 0.7s; }
+
+/* Main panels draw sequentially */
+#left-panel-border { animation-delay: 0.8s; }
+#left-panel-title { animation-delay: 1.2s; }
+#status-lines { animation-delay: 1.4s; }
+#left-divider { animation-delay: 1.5s; }
+#protocol-title { animation-delay: 1.6s; }
+#protocol-bars { animation-delay: 1.8s; }
+
+#center-border { animation-delay: 0.9s; }
+#center-grid { animation-delay: 1.5s; opacity: 0; animation: grid-fade-in 1s ease-out forwards; animation-delay: 1.5s; }
+#center-crosshair { animation-delay: 2.8s; opacity: 0; animation: crosshair-pulse 1.5s ease-out forwards; animation-delay: 2.8s; }
+
+#right-panel-border { animation-delay: 1.0s; }
+#right-panel-title { animation-delay: 1.3s; }
+#connection-lines { animation-delay: 1.7s; }
+
+/* Bottom graphs */
+#graph-left-border { animation-delay: 1.8s; }
+#graph-left-title { animation-delay: 2.2s; }
+#graph-left-grid { animation-delay: 2.3s; }
+
+#graph-right-border { animation-delay: 1.9s; }
+#graph-right-title { animation-delay: 2.3s; }
+#graph-right-grid { animation-delay: 2.4s; }
+
+/* Loading text appears after structure */
+#loading-text {
+  animation-delay: 3s;
+  animation: fade-in-text 0.5s forwards, digital-glitch 2s infinite;
+  animation-delay: 3s, 3.5s;
+}
+
+/* Grid fade in animation */
+@keyframes grid-fade-in {
   0% {
     opacity: 0;
-    transform: scale(0.92);
   }
   100% {
     opacity: 1;
+  }
+}
+
+/* Crosshair pulse animation for blob spawn point */
+@keyframes crosshair-pulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0.3;
     transform: scale(1);
+  }
+}
+
+/* Blob container - clever digital materialization */
+#intro-blob-container {
+  position: absolute;
+  width: 1240px;
+  height: 560px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  animation: blob-materialize 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation-delay: 3.5s;
+  pointer-events: none;
+}
+
+/* Digital noise overlay for materialization effect */
+#digital-noise {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 255, 0, 0.03) 2px,
+      rgba(0, 255, 0, 0.03) 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 255, 0, 0.03) 2px,
+      rgba(0, 255, 0, 0.03) 4px
+    );
+  animation: noise-scan 0.5s linear infinite;
+  opacity: 0;
+  animation: noise-fade 2s ease-out forwards;
+  animation-delay: 3.5s;
+}
+
+@keyframes noise-scan {
+  0% {
+    background-position: 0 0, 0 0;
+  }
+  100% {
+    background-position: 4px 4px, 4px 4px;
+  }
+}
+
+@keyframes noise-fade {
+  0% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Blob materialization animation - expanding from center with digital effect */
+@keyframes blob-materialize {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+    filter: blur(20px) brightness(2);
+  }
+  20% {
+    opacity: 0.3;
+    transform: translate(-50%, -50%) scale(0.3);
+    filter: blur(10px) brightness(1.5);
+  }
+  40% {
+    opacity: 0.6;
+    transform: translate(-50%, -50%) scale(0.6);
+    filter: blur(5px) brightness(1.3);
+  }
+  60% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(0.9);
+    filter: blur(2px) brightness(1.1);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.05);
+    filter: blur(0px) brightness(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    filter: blur(0px) brightness(1);
   }
 }
 
@@ -130,7 +284,8 @@ body {
   width: 100vw;
   background: #000;
   opacity: 0;
-  transition: opacity 1.5s ease-in;
+  transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition-delay: 0.3s;
 }
 
 /* Show dashboard after animation */
@@ -335,330 +490,6 @@ body {
   display: block;
   width: 100%;
   height: 100%;
-}
-
-/* ============================================================================
-   3D FIGURE - DUAL STATE ANIMATIONS
-   ============================================================================ */
-#figure {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  height: 400px;
-  width: 400px;
-  transform-style: preserve-3d;
-}
-
-/* NORMAL MODE: Only 2D spin (rotateZ) */
-body.mode-normal #figure {
-  animation: spin-2d 20s linear infinite;
-}
-
-@keyframes spin-2d {
-  from { transform: translate(-50%, -50%) rotateZ(0deg); }
-  to { transform: translate(-50%, -50%) rotateZ(360deg); }
-}
-
-/* ATTACK MODE: Crazy 3D rotation */
-body.mode-attack #figure {
-  animation: spin-3d-crazy 3s ease-in-out infinite;
-}
-
-@keyframes spin-3d-crazy {
-  0% { transform: translate(-50%, -50%) rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
-  25% { transform: translate(-50%, -50%) rotateX(45deg) rotateY(90deg) rotateZ(90deg); }
-  50% { transform: translate(-50%, -50%) rotateX(-30deg) rotateY(180deg) rotateZ(180deg); }
-  75% { transform: translate(-50%, -50%) rotateX(60deg) rotateY(270deg) rotateZ(270deg); }
-  100% { transform: translate(-50%, -50%) rotateX(0deg) rotateY(360deg) rotateZ(360deg); }
-}
-
-#figure div,
-#figure span {
-  transform-style: preserve-3d;
-  position: absolute;
-}
-
-/* Outer ring */
-#f1 {
-  left: -2px;
-  top: -2px;
-  height: 400px;
-  width: 400px;
-  border-radius: 50%;
-  border: 2px solid #006;
-  box-shadow: 0 0 10px #006;
-  animation: f1-pulse 4s ease-in-out infinite;
-}
-
-@keyframes f1-pulse {
-  0%, 100% { border-color: #006; opacity: 1; }
-  50% { border-color: #09F; opacity: 0.5; }
-}
-
-/* Rotating tick marks */
-#f2 {
-  height: 400px;
-  width: 400px;
-  animation: f2-rotate 30s linear infinite;
-}
-
-@keyframes f2-rotate {
-  from { transform: rotateZ(0deg); }
-  to { transform: rotateZ(360deg); }
-}
-
-#f2 span {
-  display: block;
-  top: 50%;
-  left: 50%;
-  margin-top: -3px;
-  height: 6px;
-  width: 2px;
-  background: #0F0;
-}
-
-/* Main circle with crosshairs */
-#f3 {
-  top: 50px;
-  left: 50px;
-  height: 300px;
-  width: 300px;
-  border-radius: 50%;
-  border: 8px solid #03C;
-  box-shadow: 0 0 15px #03C;
-  transform: translateZ(10px);
-}
-
-#f31 {
-  width: 2px;
-  background: #03C;
-  top: -10px;
-  left: 50%;
-  margin-left: -1px;
-  bottom: -10px;
-}
-
-#f31 span {
-  position: absolute;
-  left: -6px;
-  display: block;
-  border: 1px solid #03C;
-  height: 12px;
-  width: 12px;
-  border-radius: 100%;
-}
-
-.f311 { top: 0; }
-.f312 { bottom: 0; }
-
-#f31 span b {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  height: 6px;
-  width: 6px;
-  background: #03C;
-  border-radius: 100%;
-  display: block;
-  animation: pulse-dot 2s ease-in-out infinite;
-}
-
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-
-#f32 {
-  height: 2px;
-  background: #03C;
-  top: 50%;
-  margin-top: -1px;
-  left: -10px;
-  right: -10px;
-}
-
-#f32 span {
-  position: absolute;
-  top: -6px;
-  display: block;
-  border: 1px solid #03C;
-  border-radius: 50%;
-  height: 12px;
-  width: 12px;
-}
-
-.f321 { left: 0; }
-.f322 { right: 0; }
-
-#f33 {
-  width: 2px;
-  background: #000;
-  top: -10px;
-  left: 50%;
-  margin-left: -1px;
-  bottom: -10px;
-  transform: rotateZ(45deg);
-}
-
-#f34 {
-  width: 2px;
-  background: #000;
-  top: -10px;
-  left: 50%;
-  margin-left: -1px;
-  bottom: -10px;
-  transform: rotateZ(-45deg);
-}
-
-/* Middle ring */
-#f4 {
-  top: 80px;
-  left: 80px;
-  height: 240px;
-  width: 240px;
-  border: 2px solid #09F;
-  border-radius: 100%;
-  transform: translateZ(20px);
-}
-
-#f41 {
-  left: 110px;
-  top: -3px;
-  bottom: -3px;
-  width: 10px;
-  background: #000;
-}
-
-#f42 {
-  top: 110px;
-  left: -3px;
-  right: -3px;
-  height: 10px;
-  background: #000;
-}
-
-#f43 {
-  top: 114px;
-  left: 118px;
-  height: 6px;
-  width: 2px;
-  background: #09F;
-}
-
-.f431 { transform: rotateZ(45deg) translateY(130px); }
-.f432 { transform: rotateZ(-45deg) translateY(130px); }
-.f433 { transform: rotateZ(135deg) translateY(130px); }
-.f434 { transform: rotateZ(225deg) translateY(130px); }
-
-/* Inner rotating ticks */
-#f5 {
-  left: 100px;
-  top: 100px;
-  height: 200px;
-  width: 200px;
-  animation: f5-spin 15s linear infinite;
-}
-
-@keyframes f5-spin {
-  from { transform: rotateZ(360deg); }
-  to { transform: rotateZ(0deg); }
-}
-
-#f5 span {
-  display: block;
-  top: 50%;
-  left: 50%;
-  margin-top: -2px;
-  height: 4px;
-  width: 1px;
-  background: #0F0;
-}
-
-/* Inner rings */
-#f6 {
-  top: 142px;
-  left: 142px;
-  height: 116px;
-  width: 116px;
-  border-radius: 50%;
-  border: 1px solid #06F;
-  transform: translateZ(30px);
-}
-
-#f7 {
-  top: 152px;
-  left: 152px;
-  height: 96px;
-  width: 96px;
-  border-radius: 50%;
-  border: 2px solid #06F;
-  background: #000;
-  transform: translateZ(34px);
-  animation: f7-rotate 8s linear infinite;
-}
-
-@keyframes f7-rotate {
-  from { transform: translateZ(34px) rotateZ(0deg); }
-  to { transform: translateZ(34px) rotateZ(360deg); }
-}
-
-#f71, #f72 {
-  top: -12px;
-  left: 46px;
-  height: 120px;
-  width: 2px;
-  background: #06F;
-}
-
-#f72 {
-  transform: rotateZ(90deg);
-}
-
-#f8 {
-  top: 170px;
-  left: 170px;
-  height: 60px;
-  width: 60px;
-  border-radius: 50%;
-  border: 1px solid #009;
-  background: #000;
-  transform: translateZ(40px);
-}
-
-#f81, #f82 {
-  top: -10px;
-  left: 20px;
-  height: 100px;
-  width: 10px;
-  background: #009;
-  border-radius: 5px;
-}
-
-#f82 {
-  transform: rotateZ(90deg);
-}
-
-/* Center dot */
-#f9 {
-  top: 190px;
-  left: 190px;
-  height: 20px;
-  width: 20px;
-  border-radius: 50%;
-  border: 2px solid #06F;
-  transform: translateZ(50px);
-  box-shadow: 0 0 10px #06F;
-}
-
-#f9 span {
-  top: 4px;
-  left: 4px;
-  display: block;
-  height: 12px;
-  width: 12px;
-  background: #06F;
-  border-radius: 50%;
 }
 
 /* Right Panel - Connection Log */
@@ -892,52 +723,6 @@ body.mode-attack .divider {
 body.mode-attack .activity-bar {
   background: #F00;
   box-shadow: 0 0 5px #F00;
-}
-
-body.mode-attack #f1,
-body.mode-attack #f3,
-body.mode-attack #f4,
-body.mode-attack #f6,
-body.mode-attack #f7 {
-  border-color: #F00 !important;
-  box-shadow: 0 0 15px #F00 !important;
-}
-
-body.mode-attack #f9 {
-  border-color: #F00;
-  box-shadow: 0 0 15px #F00;
-}
-
-body.mode-attack #f9 span {
-  background: #F00;
-}
-
-body.mode-attack #f31 span {
-  border-color: #F00;
-}
-
-body.mode-attack #f31 span b {
-  background: #F00;
-}
-
-body.mode-attack #f2 span,
-body.mode-attack #f5 span {
-  background: #F00;
-}
-
-body.mode-attack #f43 {
-  background: #F00;
-}
-
-body.mode-attack #f71,
-body.mode-attack #f72,
-body.mode-attack #f81,
-body.mode-attack #f82 {
-  background: #F00;
-}
-
-body.mode-attack #f8 {
-  border-color: #F00;
 }
 
 body.mode-attack .graph-container {
