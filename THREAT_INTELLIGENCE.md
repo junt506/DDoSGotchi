@@ -7,23 +7,24 @@ DDoSGotchi now includes powerful threat intelligence capabilities to identify ma
 - 🛡️ **Real-time threat detection** - Automatically checks IPs against threat databases
 - 💀 **Malicious IP badges** - Visual indicators for known bad actors
 - 📊 **Threat scoring** - Confidence levels from 0-100%
-- 🌐 **Multiple sources** - GreyNoise (free) + AbuseIPDB (optional API key)
+- 🌐 **Multiple sources** - AbuseIPDB (recommended) + GreyNoise (optional)
 - 💾 **Smart caching** - Avoids rate limits and speeds up repeated checks
 - 🔍 **Detailed threat info** - Click any IP to see full threat intelligence report
 
 ## Free Threat Intelligence Sources
 
-### 1. GreyNoise (Always Enabled)
-- **No API key required**
-- Identifies internet scanners and malicious actors
-- Free community API
-- Real-time classification
-
-### 2. AbuseIPDB (Optional - Recommended)
+### 1. AbuseIPDB (Recommended - Always Works)
 - **Requires free API key**
 - Community-driven malicious IP database
 - Free tier: 1000 checks/day
 - Abuse confidence scores
+- **Reliable and actively maintained**
+
+### 2. GreyNoise (Optional - Disabled by Default)
+- **No API key required but has strict rate limits**
+- Identifies internet scanners and malicious actors
+- Free community API (limited requests)
+- **Disabled by default** - set `ENABLE_GREYNOISE=true` to enable
 
 ## Setup
 
@@ -34,32 +35,46 @@ DDoSGotchi now includes powerful threat intelligence capabilities to identify ma
 3. Go to your account page
 4. Copy your API key
 
-### Configure API Key
+### Configure API Keys
 
 **Linux/Mac:**
 ```bash
+# AbuseIPDB (recommended)
 export ABUSEIPDB_API_KEY="your_api_key_here"
-python3 backend_electron.py
+
+# GreyNoise (optional - only if you want to enable it)
+export ENABLE_GREYNOISE=true
+
+# Run the app
+./run-electron.sh
 ```
 
 **Windows:**
 ```cmd
+REM AbuseIPDB (recommended)
 set ABUSEIPDB_API_KEY=your_api_key_here
-python backend_electron.py
+
+REM GreyNoise (optional - only if you want to enable it)
+set ENABLE_GREYNOISE=true
+
+REM Run the app
+run-electron.bat
 ```
 
 **Or permanently:**
 Add to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.):
 ```bash
 export ABUSEIPDB_API_KEY="your_api_key_here"
+# export ENABLE_GREYNOISE=true  # Uncomment to enable GreyNoise
 ```
 
 ## How It Works
 
-1. **Detection**: Backend checks each unique IP against threat databases
-2. **Rate Limiting**: Maximum 5 new IPs per second to avoid API limits
+1. **Detection**: Backend checks each unique IP against enabled threat sources
+2. **Rate Limiting**: 1 new IP checked per second to respect API limits
 3. **Caching**: Results cached for 1 hour to minimize API calls
-4. **Display**: Malicious IPs shown with badges and threat scores
+4. **Sequential Checking**: IPs checked one at a time to avoid rate limit errors
+5. **Display**: Malicious IPs shown with badges and threat scores
 
 ## Visual Indicators
 
