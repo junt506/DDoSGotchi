@@ -16,11 +16,11 @@ body {
 }
 
 /* ============================================================================
-   SVG DRAW ANIMATION - Professional Dashboard Wireframe
+   INTRO BAR ANIMATION
    ============================================================================ */
 
 /* Animation overlay - fullscreen black background */
-#draw-animation-overlay {
+#intro-animation-container {
   position: fixed;
   top: 0;
   left: 0;
@@ -28,252 +28,210 @@ body {
   height: 100vh;
   background: #000;
   z-index: 9999;
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity 1s ease-out;
+}
+
+#intro-animation-container.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.intro-wrap {
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: none;
-  opacity: 1;
-  transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* SVG wireframe container */
-#dashboard-wireframe {
-  position: absolute;
+.intro-title {
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Bars container */
+.bars {
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
   opacity: 1;
-}
-
-/* Draw animation for main structure elements */
-#dashboard-wireframe rect,
-#dashboard-wireframe line {
-  stroke-dasharray: 2000;
-  stroke-dashoffset: 2000;
-  animation: draw-stroke 1.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  filter: drop-shadow(0 0 3px #0F0);
-}
-
-/* Text fade-in animation */
-#dashboard-wireframe text {
-  opacity: 0;
-  animation: fade-in-text 0.6s cubic-bezier(0.4, 0, 0.6, 1) forwards;
-  filter: drop-shadow(0 0 2px #0F0);
-}
-
-/* Group animations for synchronized effects */
-#dashboard-wireframe g {
-  opacity: 0;
-  animation: fade-in-group 0.8s ease-out forwards;
-}
-
-@keyframes draw-stroke {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes fade-in-text {
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes fade-in-group {
-  to {
-    opacity: 1;
-  }
-}
-
-/* Digital glitch effect for loading text */
-@keyframes digital-glitch {
-  0%, 100% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  10% {
-    opacity: 0.8;
-    transform: translateX(-2px);
-  }
-  20% {
-    opacity: 1;
-    transform: translateX(2px);
-  }
-  30% {
-    opacity: 0.9;
-    transform: translateX(-1px);
-  }
-}
-
-/* Staggered timing for wireframe elements - precise orchestration */
-/* Header elements */
-#header-border { animation-delay: 0s; }
-#header-divider { animation-delay: 0.2s; }
-#header-title { animation-delay: 0.4s; }
-#header-face { animation-delay: 0.5s; }
-#header-status { animation-delay: 0.6s; }
-#header-time { animation-delay: 0.7s; }
-
-/* Main panels draw sequentially */
-#left-panel-border { animation-delay: 0.8s; }
-#left-panel-title { animation-delay: 1.2s; }
-#status-lines { animation-delay: 1.4s; }
-#left-divider { animation-delay: 1.5s; }
-#protocol-title { animation-delay: 1.6s; }
-#protocol-bars { animation-delay: 1.8s; }
-
-#center-border { animation-delay: 0.9s; }
-#center-grid { animation-delay: 1.5s; opacity: 0; animation: grid-fade-in 1s ease-out forwards; animation-delay: 1.5s; }
-#center-crosshair { animation-delay: 2.8s; opacity: 0; animation: crosshair-pulse 1.5s ease-out forwards; animation-delay: 2.8s; }
-
-#right-panel-border { animation-delay: 1.0s; }
-#right-panel-title { animation-delay: 1.3s; }
-#connection-lines { animation-delay: 1.7s; }
-
-/* Bottom graphs */
-#graph-left-border { animation-delay: 1.8s; }
-#graph-left-title { animation-delay: 2.2s; }
-#graph-left-grid { animation-delay: 2.3s; }
-
-#graph-right-border { animation-delay: 1.9s; }
-#graph-right-title { animation-delay: 2.3s; }
-#graph-right-grid { animation-delay: 2.4s; }
-
-/* Loading text appears after structure */
-#loading-text {
-  animation-delay: 3s;
-  animation: fade-in-text 0.5s forwards, digital-glitch 2s infinite;
-  animation-delay: 3s, 3.5s;
-}
-
-/* Grid fade in animation */
-@keyframes grid-fade-in {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-/* Crosshair pulse animation for blob spawn point */
-@keyframes crosshair-pulse {
-  0% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.1);
-  }
-  100% {
-    opacity: 0.3;
-    transform: scale(1);
-  }
-}
-
-/* Blob container - clever digital materialization */
-#intro-blob-container {
+  z-index: 10;
+  height: 100%;
+  width: 600px;
+  margin: 0 auto;
   position: absolute;
-  width: 1240px;
-  height: 560px;
+}
+
+.bar {
+  left: 0;
+  width: 14px;
+  height: 100%;
+  position: absolute;
+}
+
+.bar::before,
+.bar::after {
+  left: 0;
+  height: 0;
+  z-index: 1;
+  content: '';
+  width: 14px;
+  background: #333;
+  position: absolute;
+}
+
+.bar::before {
+  bottom: 50%;
+  border-bottom: 3px solid #000;
+  animation: expand 1s cubic-bezier(1,0,0,1) 1s forwards;
+}
+
+.bar::after {
   top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  opacity: 0;
-  animation: blob-materialize 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  animation-delay: 3.5s;
-  pointer-events: none;
+  border-top: 3px solid #000;
+  animation: expand 1s cubic-bezier(1,0,0,1) 1s forwards;
 }
 
-/* Digital noise overlay for materialization effect */
-#digital-noise {
-  position: absolute;
-  top: 0;
+/* Black bars covering parts */
+.black-bar {
+  background: #000;
+  animation: fadeOut .5s ease-out 2.5s forwards;
+}
+
+.black-bar::before,
+.black-bar::after {
+  display: none;
+}
+
+/* Bar positions */
+.bar.-one { left: 0; }
+.bar.-two { left: 70px; }
+.bar.-three { left: 140px; }
+.bar.-four { left: 210px; }
+.bar.-five { left: 280px; }
+.bar.-six { left: 350px; }
+.bar.-seven { left: 420px; }
+.bar.-eight { left: 490px; }
+.bar.-nine { left: 560px; }
+.bar.-ten { left: 586px; }
+
+/* Black bar positions */
+.black-one { left: 14px; width: 56px; }
+.black-two { left: 154px; width: 56px; }
+.black-three { left: 294px; width: 56px; }
+.black-four { left: 434px; width: 56px; }
+.black-five { left: 560px; width: 26px; }
+
+/* Title sequence */
+.title-sequence {
+  top: 50%;
+  opacity: 0;
+  width: 600px;
+  height: 200px;
+  margin: 0 auto;
+  position: relative;
+  transform: translateY(-50%);
+  animation: fadeIn 1s steps(1, start) 1.5s forwards;
+}
+
+.title-sequence h2 {
+  margin: 0;
+  line-height: 200px;
+  text-align: center;
+  font-size: 24px;
+  color: #0F0;
+  font-family: 'Courier New', monospace;
+  text-shadow: 0 0 10px #0F0;
+}
+
+.title-sequence .byline {
+  line-height: 200px;
+  text-align: center;
+}
+
+.title-sequence .group {
   left: 0;
   width: 100%;
-  height: 100%;
-  background:
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0, 255, 0, 0.03) 2px,
-      rgba(0, 255, 0, 0.03) 4px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 2px,
-      rgba(0, 255, 0, 0.03) 2px,
-      rgba(0, 255, 0, 0.03) 4px
-    );
-  animation: noise-scan 0.5s linear infinite;
-  opacity: 0;
-  animation: noise-fade 2s ease-out forwards;
-  animation-delay: 3.5s;
+  height: 66px;
+  position: absolute;
+  overflow: hidden;
 }
 
-@keyframes noise-scan {
-  0% {
-    background-position: 0 0, 0 0;
-  }
-  100% {
-    background-position: 4px 4px, 4px 4px;
-  }
+.title-sequence .group.-top {
+  top: 0;
+  animation: expandUpBig 1s cubic-bezier(1,0,0,1) 3.5s forwards;
 }
 
-@keyframes noise-fade {
-  0% {
-    opacity: 1;
-  }
-  80% {
-    opacity: 0.5;
-  }
-  100% {
-    opacity: 0;
-  }
+.title-sequence .group.-middle {
+  top: 67px;
+  animation: expandUpBig 1s cubic-bezier(1,0,0,1) 3.55s forwards;
 }
 
-/* Blob materialization animation - expanding from center with digital effect */
-@keyframes blob-materialize {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0);
-    filter: blur(20px) brightness(2);
-  }
-  20% {
-    opacity: 0.3;
-    transform: translate(-50%, -50%) scale(0.3);
-    filter: blur(10px) brightness(1.5);
-  }
-  40% {
-    opacity: 0.6;
-    transform: translate(-50%, -50%) scale(0.6);
-    filter: blur(5px) brightness(1.3);
-  }
-  60% {
-    opacity: 0.9;
-    transform: translate(-50%, -50%) scale(0.9);
-    filter: blur(2px) brightness(1.1);
-  }
-  80% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1.05);
-    filter: blur(0px) brightness(1.05);
-  }
-  100% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-    filter: blur(0px) brightness(1);
-  }
+.title-sequence .group.-bottom {
+  bottom: 0;
+  animation: expandDownBig 1s cubic-bezier(1,0,0,1) 3.6s forwards;
 }
 
-/* Fade out the entire draw animation overlay */
-#draw-animation-overlay.fade-out {
-  opacity: 0;
-  pointer-events: none;
+.title-sequence .title {
+  height: 66px;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 72px;
+  font-weight: bold;
+  color: #0F0;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 20px;
+  text-shadow: 0 0 20px #0F0;
+}
+
+.title-one {
+  left: 0;
+  z-index: 1;
+  position: absolute;
+}
+
+.title-two {
+  left: 0;
+  position: relative;
+}
+
+.title-three {
+  bottom: 0;
+  position: absolute;
+  font-size: 60px;
+  letter-spacing: 10px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes expand {
+  0% { height: 0; }
+  100% { height: 100%; }
+}
+
+@keyframes expandUpBig {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-1000px); }
+}
+
+@keyframes expandDownBig {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(1000px); }
 }
 
 /* Initially hide the dashboard */
