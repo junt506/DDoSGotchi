@@ -96,40 +96,30 @@ function init() {
 // ============================================================================
 
 function playDrawAnimation() {
-    console.log('▶ Starting professional SVG draw animation...');
+    console.log('▶ Starting bar expansion intro animation...');
 
     // Timeline:
-    // 0-3s: SVG wireframe draws with precise element orchestration
-    // 3-5s: Center grid appears, crosshair pulses, loading text appears
-    // 3.5-5.5s: Blob materializes from center with digital effect
-    // 6-7.5s: Smooth crossfade (overlay fades out, dashboard fades in)
-    // 7.5s: Complete - remove overlay, initialize main visualization
+    // 0-1s: Wait
+    // 1-2s: Bars expand from center
+    // 1.5s: Title sequence fades in
+    // 2.5s: Black bars fade out (revealing text)
+    // 3.5-4.5s: Text slides away (up/down)
+    // 4.5s: Begin crossfade
+    // 5.5s: Complete - remove overlay, show dashboard
 
-    // At 3.5 seconds: Initialize blob visualization with digital materialization
-    setTimeout(() => {
-        console.log('▶ Digital materialization sequence initiated...');
-        const introBlobContainer = document.getElementById('intro-blob-container');
-        introVisualization = new NeuralNexusVisualization(introBlobContainer);
-        console.log('✓ Neural Nexus blob materializing...');
-    }, 3500);
-
-    // At 6 seconds: Begin professional crossfade
+    // At 4.5 seconds: Begin crossfade
     setTimeout(() => {
         console.log('▶ Initiating crossfade sequence...');
-        const overlay = document.getElementById('draw-animation-overlay');
+        const overlay = document.getElementById('intro-animation-container');
         const app = document.getElementById('app');
         overlay.classList.add('fade-out');
         app.classList.add('visible');
-    }, 6000);
+    }, 4500);
 
-    // At 7.5 seconds: Complete animation
+    // At 5.5 seconds: Complete animation
     setTimeout(() => {
         console.log('✓ Animation sequence complete');
-        if (introVisualization) {
-            introVisualization.destroy();
-            introVisualization = null;
-        }
-        const overlay = document.getElementById('draw-animation-overlay');
+        const overlay = document.getElementById('intro-animation-container');
         if (overlay) {
             overlay.remove();
         }
@@ -137,7 +127,7 @@ function playDrawAnimation() {
         visualization = new NeuralNexusVisualization(centerDisplay);
         console.log('✓ Main Neural Nexus visualization online');
         isIntroComplete = true;
-    }, 7500);
+    }, 5500);
 }
 
 // Generate protocol distribution chart

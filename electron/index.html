@@ -16,158 +16,57 @@
 </head>
 <body>
 
-<!-- SVG Draw Animation Overlay -->
-<div id="draw-animation-overlay">
-  <svg id="dashboard-wireframe" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-    <!-- Define gradients for glow effects -->
-    <defs>
-      <filter id="glow">
-        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-        <feMerge>
-          <feMergeNode in="coloredBlur"/>
-          <feMergeNode in="SourceGraphic"/>
-        </feMerge>
-      </filter>
-
-      <!-- Animated gradient for special effects -->
-      <linearGradient id="animatedGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" style="stop-color:#0F0;stop-opacity:0">
-          <animate attributeName="stop-opacity" values="0;1;0" dur="3s" repeatCount="indefinite"/>
-        </stop>
-        <stop offset="50%" style="stop-color:#0F0;stop-opacity:1">
-          <animate attributeName="stop-opacity" values="1;0.5;1" dur="3s" repeatCount="indefinite"/>
-        </stop>
-        <stop offset="100%" style="stop-color:#0F0;stop-opacity:0">
-          <animate attributeName="stop-opacity" values="0;1;0" dur="3s" repeatCount="indefinite"/>
-        </stop>
-      </linearGradient>
-    </defs>
-
-    <!-- Header Section (80px height with padding) -->
-    <g id="header-group" filter="url(#glow)">
-      <rect id="header-border" x="0" y="0" width="1920" height="80" fill="none" stroke="#0F0" stroke-width="2" opacity="0"/>
-      <line id="header-divider" x1="0" y1="80" x2="1920" y2="80" stroke="#0F0" stroke-width="2" opacity="0"/>
-
-      <!-- Header elements -->
-      <text id="header-title" x="50" y="45" fill="#0F0" font-family="Courier New, monospace" font-size="24" font-weight="bold" letter-spacing="3" opacity="0">DDoS GOTCHI v3.0</text>
-      <text id="header-face" x="960" y="35" fill="#0F0" font-family="Courier New, monospace" font-size="36" text-anchor="middle" opacity="0">(◕‿‿◕)</text>
-      <text id="header-status" x="960" y="60" fill="#0F0" font-family="Courier New, monospace" font-size="14" font-style="italic" text-anchor="middle" opacity="0.8">initializing network monitor...</text>
-      <text id="header-time" x="1870" y="45" fill="#0F0" font-family="Courier New, monospace" font-size="18" text-anchor="end" opacity="0">00:00:00</text>
-    </g>
-
-    <!-- Main Content Area (3 panels with 20px padding) -->
-    <g id="main-content-group" filter="url(#glow)">
-      <!-- Left Panel: 300px width -->
-      <rect id="left-panel-border" x="20" y="100" width="300" height="560" fill="none" stroke="#0F0" stroke-width="2" opacity="0"/>
-
-      <!-- Network Status Section -->
-      <text id="left-panel-title" x="170" y="130" fill="#0F0" font-family="Courier New, monospace" font-size="16" font-weight="bold" text-anchor="middle" opacity="0">[ NETWORK STATUS ]</text>
-
-      <!-- Status lines (simplified) -->
-      <g id="status-lines" opacity="0">
-        <line x1="40" y1="160" x2="120" y2="160" stroke="#0A0" stroke-width="1" opacity="0.6"/>
-        <line x1="200" y1="160" x2="300" y2="160" stroke="#0F0" stroke-width="1" opacity="0.8"/>
-
-        <line x1="40" y1="190" x2="120" y2="190" stroke="#0A0" stroke-width="1" opacity="0.6"/>
-        <line x1="200" y1="190" x2="300" y2="190" stroke="#0F0" stroke-width="1" opacity="0.8"/>
-
-        <line x1="40" y1="220" x2="120" y2="220" stroke="#0A0" stroke-width="1" opacity="0.6"/>
-        <line x1="200" y1="220" x2="300" y2="220" stroke="#0F0" stroke-width="1" opacity="0.8"/>
-      </g>
-
-      <line id="left-divider" x1="40" y1="380" x2="300" y2="380" stroke="#0F0" stroke-width="1" opacity="0.3"/>
-
-      <text id="protocol-title" x="170" y="410" fill="#0F0" font-family="Courier New, monospace" font-size="16" font-weight="bold" text-anchor="middle" opacity="0">[ PROTOCOL DISTRIBUTION ]</text>
-
-      <!-- Protocol bars visualization -->
-      <g id="protocol-bars" opacity="0">
-        <rect x="70" y="440" width="200" height="18" fill="none" stroke="#0F0" stroke-width="1" opacity="0.3"/>
-        <rect x="70" y="440" width="120" height="18" fill="#0F0" opacity="0.5"/>
-
-        <rect x="70" y="470" width="200" height="18" fill="none" stroke="#0088FF" stroke-width="1" opacity="0.3"/>
-        <rect x="70" y="470" width="80" height="18" fill="#0088FF" opacity="0.5"/>
-
-        <rect x="70" y="500" width="200" height="18" fill="none" stroke="#FFA500" stroke-width="1" opacity="0.3"/>
-        <rect x="70" y="500" width="40" height="18" fill="#FFA500" opacity="0.5"/>
-      </g>
-
-      <!-- Center Display: Neural Nexus Area (flex-1 space) -->
-      <rect id="center-border" x="340" y="100" width="1240" height="560" fill="none" stroke="#0F0" stroke-width="2" opacity="0"/>
-
-      <!-- Digital grid effect for blob area -->
-      <g id="center-grid" opacity="0">
-        <!-- Horizontal grid lines -->
-        <line x1="340" y1="180" x2="1580" y2="180" stroke="#0F0" stroke-width="0.5" opacity="0.1"/>
-        <line x1="340" y1="260" x2="1580" y2="260" stroke="#0F0" stroke-width="0.5" opacity="0.1"/>
-        <line x1="340" y1="340" x2="1580" y2="340" stroke="#0F0" stroke-width="0.5" opacity="0.1"/>
-        <line x1="340" y1="420" x2="1580" y2="420" stroke="#0F0" stroke-width="0.5" opacity="0.1"/>
-        <line x1="340" y1="500" x2="1580" y2="500" stroke="#0F0" stroke-width="0.5" opacity="0.1"/>
-        <line x1="340" y1="580" x2="1580" y2="580" stroke="#0F0" stroke-width="0.5" opacity="0.1"/>
-
-        <!-- Vertical grid lines -->
-        <line x1="500" y1="100" x2="500" y2="660" stroke="#0F0" stroke-width="0.5" opacity="0.1"/>
-        <line x1="660" y1="100" x2="660" y2="660" stroke="#0F0" stroke-width="0.5" opacity="0.1"/>
-        <line x1="820" y1="100" x2="820" y2="660" stroke="#0F0" stroke-width="0.5" opacity="0.1"/>
-        <line x1="980" y1="100" x2="980" y2="660" stroke="#0F0" stroke-width="0.5" opacity="0.1"/>
-        <line x1="1140" y1="100" x2="1140" y2="660" stroke="#0F0" stroke-width="0.5" opacity="0.1"/>
-        <line x1="1300" y1="100" x2="1300" y2="660" stroke="#0F0" stroke-width="0.5" opacity="0.1"/>
-        <line x1="1460" y1="100" x2="1460" y2="660" stroke="#0F0" stroke-width="0.5" opacity="0.1"/>
-      </g>
-
-      <!-- Center focus crosshair for blob materialization -->
-      <g id="center-crosshair" opacity="0">
-        <line x1="960" y1="330" x2="960" y2="430" stroke="#0F0" stroke-width="2" opacity="0.8"/>
-        <line x1="910" y1="380" x2="1010" y2="380" stroke="#0F0" stroke-width="2" opacity="0.8"/>
-        <circle cx="960" cy="380" r="50" fill="none" stroke="#0F0" stroke-width="1" opacity="0.5"/>
-        <circle cx="960" cy="380" r="80" fill="none" stroke="#0F0" stroke-width="0.5" opacity="0.3"/>
-      </g>
-
-      <!-- Right Panel: 350px width -->
-      <rect id="right-panel-border" x="1600" y="100" width="300" height="560" fill="none" stroke="#0F0" stroke-width="2" opacity="0"/>
-      <text id="right-panel-title" x="1750" y="130" fill="#0F0" font-family="Courier New, monospace" font-size="16" font-weight="bold" text-anchor="middle" opacity="0">[ ACTIVE CONNECTIONS ]</text>
-
-      <!-- Connection list visualization -->
-      <g id="connection-lines" opacity="0">
-        <rect x="1620" y="160" width="260" height="30" fill="none" stroke="#0F0" stroke-width="1" opacity="0.3"/>
-        <rect x="1620" y="200" width="260" height="30" fill="none" stroke="#0F0" stroke-width="1" opacity="0.3"/>
-        <rect x="1620" y="240" width="260" height="30" fill="none" stroke="#0FF" stroke-width="1" opacity="0.3"/>
-        <rect x="1620" y="280" width="260" height="30" fill="none" stroke="#0F0" stroke-width="1" opacity="0.3"/>
-      </g>
-    </g>
-
-    <!-- Bottom Graphs Area (height: 200px with padding) -->
-    <g id="graphs-group" filter="url(#glow)">
-      <!-- Left Graph -->
-      <rect id="graph-left-border" x="30" y="700" width="920" height="200" fill="none" stroke="#0F0" stroke-width="2" opacity="0"/>
-      <text id="graph-left-title" x="490" y="730" fill="#0F0" font-family="Courier New, monospace" font-size="14" font-weight="bold" text-anchor="middle" letter-spacing="2" opacity="0">LATENCY (MS)</text>
-
-      <!-- Graph grid lines -->
-      <g id="graph-left-grid" opacity="0">
-        <line x1="90" y1="750" x2="90" y2="870" stroke="#0F0" stroke-width="0.5" opacity="0.2"/>
-        <line x1="90" y1="870" x2="900" y2="870" stroke="#0F0" stroke-width="0.5" opacity="0.2"/>
-      </g>
-
-      <!-- Right Graph -->
-      <rect id="graph-right-border" x="970" y="700" width="920" height="200" fill="none" stroke="#0F0" stroke-width="2" opacity="0"/>
-      <text id="graph-right-title" x="1430" y="730" fill="#0F0" font-family="Courier New, monospace" font-size="14" font-weight="bold" text-anchor="middle" letter-spacing="2" opacity="0">PACKET LOSS (%)</text>
-
-      <!-- Graph grid lines -->
-      <g id="graph-right-grid" opacity="0">
-        <line x1="1030" y1="750" x2="1030" y2="870" stroke="#0F0" stroke-width="0.5" opacity="0.2"/>
-        <line x1="1030" y1="870" x2="1840" y2="870" stroke="#0F0" stroke-width="0.5" opacity="0.2"/>
-      </g>
-    </g>
-
-    <!-- Digital text effect for loading -->
-    <text id="loading-text" x="960" y="540" fill="#0F0" font-family="Courier New, monospace" font-size="18" text-anchor="middle" opacity="0">
-      INITIALIZING NEURAL NEXUS...
-    </text>
-  </svg>
-
-  <!-- Blob container with digital materialization effect -->
-  <div id="intro-blob-container">
-    <!-- Digital noise overlay for materialization effect -->
-    <div id="digital-noise"></div>
+<!-- Intro Animation Overlay -->
+<div id="intro-animation-container">
+  <div class="intro-wrap">
+    <div class="intro-title">
+      <div class="bars">
+        <div class="bar -one"></div>
+        <div class="bar -two"></div>
+        <div class="bar -three"></div>
+        <div class="bar -four"></div>
+        <div class="bar -five"></div>
+        <div class="bar -six"></div>
+        <div class="bar -seven"></div>
+        <div class="bar -eight"></div>
+        <div class="bar -nine"></div>
+        <div class="bar -ten"></div>
+        <div class="bar black-bar black-one"></div>
+        <div class="bar black-bar black-two"></div>
+        <div class="bar black-bar black-three"></div>
+        <div class="bar black-bar black-four"></div>
+        <div class="bar black-bar black-five"></div>
+      </div>
+      <div class="title-sequence">
+        <h2 class="byline">Network Security Monitor</h2>
+        <div class="group -top">
+          <div class="title title-one">
+            <span class="letter">D</span>
+            <span class="letter">D</span>
+            <span class="letter">O</span>
+            <span class="letter">S</span>
+          </div>
+        </div>
+        <div class="group -middle">
+          <div class="title title-two">
+            <span class="letter">G</span>
+            <span class="letter">O</span>
+            <span class="letter">T</span>
+            <span class="letter">C</span>
+            <span class="letter">H</span>
+            <span class="letter">I</span>
+          </div>
+        </div>
+        <div class="group -bottom">
+          <div class="title title-three">
+            <span class="letter">v</span>
+            <span class="letter">3</span>
+            <span class="letter">.</span>
+            <span class="letter">0</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
