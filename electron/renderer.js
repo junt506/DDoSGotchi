@@ -439,7 +439,7 @@ function drawInteractiveGraph(canvasId, data, color, maxValue, timestamps, graph
 
     // Increased margins for better spacing
     const marginTop = 30;
-    const marginBottom = 60;
+    const marginBottom = 80;  // More space for time labels
     const marginLeft = 60;
     const marginRight = 30;
 
@@ -522,14 +522,14 @@ function drawInteractiveGraph(canvasId, data, color, maxValue, timestamps, graph
     ctx.stroke();
     ctx.shadowBlur = 0;
 
-    // Draw time labels (fewer, non-overlapping)
+    // Draw time labels (fewer, non-overlapping, shorter format)
     if (timestamps && timestamps.length > 0) {
-        ctx.fillStyle = 'rgba(0, 255, 0, 0.7)';
-        ctx.font = '11px Courier New';
+        ctx.fillStyle = 'rgba(0, 255, 0, 0.8)';
+        ctx.font = '13px Courier New';
         ctx.textAlign = 'center';
 
-        // Only show 4 time labels to avoid clutter
-        const labelCount = 4;
+        // Only show 3 time labels to prevent overlap
+        const labelCount = 3;
         const labelIndices = [];
         for (let i = 0; i < labelCount; i++) {
             labelIndices.push(Math.floor((data.length - 1) * (i / (labelCount - 1))));
@@ -538,13 +538,13 @@ function drawInteractiveGraph(canvasId, data, color, maxValue, timestamps, graph
         labelIndices.forEach(index => {
             if (index < timestamps.length) {
                 const x = marginLeft + index * pointSpacing;
+                // Shorter format: "5:11 PM" instead of "5:11:02 PM"
                 const time = timestamps[index].toLocaleTimeString('en-US', {
                     hour: 'numeric',
                     minute: '2-digit',
-                    second: '2-digit',
                     hour12: true
                 });
-                ctx.fillText(time, x, height - 20);
+                ctx.fillText(time, x, height - 30);
             }
         });
     }
@@ -592,10 +592,10 @@ function drawInteractiveGraph(canvasId, data, color, maxValue, timestamps, graph
 
         const unit = graphKey === 'latency' ? ' ms' : '%';
 
-        // Tooltip dimensions
-        const tooltipWidth = 160;
-        const tooltipHeight = 60;
-        const tooltipPadding = 12;
+        // Tooltip dimensions - larger with more breathing room
+        const tooltipWidth = 200;
+        const tooltipHeight = 85;
+        const tooltipPadding = 20;
 
         // Position tooltip to the side or above, never overlapping
         let tooltipX, tooltipY;
@@ -645,23 +645,26 @@ function drawInteractiveGraph(canvasId, data, color, maxValue, timestamps, graph
         roundRect(ctx, tooltipX, tooltipY, tooltipWidth, tooltipHeight, 8);
         ctx.stroke();
 
-        // Draw tooltip text
-        ctx.fillStyle = '#FFF';
-        ctx.font = 'bold 13px Courier New';
+        // Draw tooltip text with better spacing
         ctx.textAlign = 'left';
-        ctx.fillText('Time:', tooltipX + tooltipPadding, tooltipY + 22);
+
+        // Time section
+        ctx.fillStyle = '#FFF';
+        ctx.font = 'bold 14px Courier New';
+        ctx.fillText('Time:', tooltipX + tooltipPadding, tooltipY + 28);
 
         ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-        ctx.font = '12px Courier New';
-        ctx.fillText(timeStr, tooltipX + tooltipPadding, tooltipY + 38);
+        ctx.font = '13px Courier New';
+        ctx.fillText(timeStr, tooltipX + tooltipPadding, tooltipY + 48);
 
+        // Value section (more spacing from Time section)
         ctx.fillStyle = '#FFF';
-        ctx.font = 'bold 13px Courier New';
-        ctx.fillText('Value:', tooltipX + tooltipPadding, tooltipY + tooltipHeight - 16);
+        ctx.font = 'bold 14px Courier New';
+        ctx.fillText('Value:', tooltipX + tooltipPadding, tooltipY + tooltipHeight - 12);
 
         ctx.fillStyle = color;
-        ctx.font = 'bold 14px Courier New';
-        ctx.fillText(value + unit, tooltipX + tooltipPadding + 50, tooltipY + tooltipHeight - 16);
+        ctx.font = 'bold 15px Courier New';
+        ctx.fillText(value + unit, tooltipX + tooltipPadding + 60, tooltipY + tooltipHeight - 12);
     }
 
     // Setup mouse events (only once per canvas)
