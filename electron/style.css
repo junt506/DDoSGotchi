@@ -16,11 +16,11 @@ body {
 }
 
 /* ============================================================================
-   STARTUP ANIMATION - Xbox-Inspired Boot Sequence
+   SVG DRAW ANIMATION - Dashboard Wireframe
    ============================================================================ */
 
-/* Startup overlay - fullscreen black background */
-#startup-overlay {
+/* Animation overlay - fullscreen black background */
+#draw-animation-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -36,34 +36,68 @@ body {
   transition: opacity 1s ease-out;
 }
 
-/* Container for the blob during startup */
-#startup-blob-container {
+/* SVG wireframe container */
+#dashboard-wireframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+}
+
+/* Draw animation for all rectangles */
+#dashboard-wireframe rect {
+  stroke-dasharray: 3000;
+  stroke-dashoffset: 3000;
+  animation: draw-line 4s ease-out forwards;
+  filter: drop-shadow(0 0 5px #0F0);
+}
+
+/* Stagger the drawing of each element */
+#header-rect { animation-delay: 0s; }
+#left-panel-rect { animation-delay: 0.5s; }
+#center-rect { animation-delay: 1s; }
+#right-panel-rect { animation-delay: 1.5s; }
+#graph-left-rect { animation-delay: 2s; }
+#graph-right-rect { animation-delay: 2.5s; }
+
+@keyframes draw-line {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Blob container - appears in center after drawing */
+#intro-blob-container {
+  position: absolute;
   width: 600px;
   height: 600px;
-  position: relative;
-  transform: scale(0.3);
-  animation: blob-zoom 3s ease-in forwards;
-  animation-delay: 1s;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  animation: blob-appear 2s ease-out forwards;
+  animation-delay: 4s; /* Start after wireframe is drawn */
 }
 
-/* Keyframe: Zoom into the blob (Xbox style) */
-@keyframes blob-zoom {
+@keyframes blob-appear {
   0% {
-    transform: scale(0.3);
-    opacity: 1;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
   }
-  80% {
-    transform: scale(2.5);
+  50% {
     opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
   }
   100% {
-    transform: scale(3.5);
-    opacity: 0;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
-/* Fade out the entire startup overlay */
-#startup-overlay.fade-out {
+/* Fade out the entire draw animation overlay */
+#draw-animation-overlay.fade-out {
   opacity: 0;
   pointer-events: none;
 }
@@ -76,10 +110,10 @@ body {
   width: 100vw;
   background: #000;
   opacity: 0;
-  transition: opacity 1s ease-in;
+  transition: opacity 1.5s ease-in;
 }
 
-/* Show dashboard after startup */
+/* Show dashboard after animation */
 #app.visible {
   opacity: 1;
 }

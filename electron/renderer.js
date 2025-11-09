@@ -44,8 +44,8 @@ let ws = null;
 let reconnectInterval = null;
 let isAttackMode = false;
 let visualization = null;
-let startupVisualization = null;
-let isStartupComplete = false;
+let introVisualization = null;
+let isIntroComplete = false;
 
 // Graph data storage
 const maxDataPoints = 120; // Increased for smoother graphs
@@ -69,8 +69,8 @@ let protocolData = {TCP: 0, UDP: 0, ICMP: 0, OTHER: 0};
 function init() {
     console.log('DDoS Gotchi v3.0 - Neural Nexus Initializing...');
 
-    // Start Xbox-inspired startup animation
-    playStartupAnimation();
+    // Start SVG draw animation
+    playDrawAnimation();
 
     // Generate protocol chart
     generateProtocolChart();
@@ -92,48 +92,51 @@ function init() {
 }
 
 // ============================================================================
-// STARTUP ANIMATION - Xbox-Inspired Boot Sequence
+// SVG DRAW ANIMATION - Dashboard Wireframe Reveal
 // ============================================================================
 
-function playStartupAnimation() {
-    console.log('▶ Starting Xbox-style boot animation...');
-
-    // Create startup visualization in the startup container
-    const startupContainer = document.getElementById('startup-blob-container');
-    startupVisualization = new NeuralNexusVisualization(startupContainer);
-    console.log('✓ Startup blob initialized');
+function playDrawAnimation() {
+    console.log('▶ Starting SVG draw animation...');
 
     // Timeline:
-    // 0-1s: Blob visible, small, centered
-    // 1-4s: Zoom animation (CSS handles this)
-    // 4s: Start crossfade (blob fades out, dashboard fades in)
-    // 5s: Complete - remove startup overlay, move visualization to center
+    // 0-6.5s: SVG wireframe draws (staggered rectangles)
+    // 4-6s: Blob appears in center and grows
+    // 6.5-8s: Crossfade (wireframe+blob fade out, dashboard fades in)
+    // 8s: Complete - remove overlay, initialize main visualization
 
-    // At 4 seconds: Begin crossfade
+    // At 4 seconds: Initialize blob visualization in intro container
     setTimeout(() => {
-        console.log('▶ Crossfade: Startup → Dashboard');
-        const overlay = document.getElementById('startup-overlay');
+        console.log('▶ Blob appearing...');
+        const introBlobContainer = document.getElementById('intro-blob-container');
+        introVisualization = new NeuralNexusVisualization(introBlobContainer);
+        console.log('✓ Intro blob initialized');
+    }, 4000);
+
+    // At 6.5 seconds: Begin crossfade
+    setTimeout(() => {
+        console.log('▶ Crossfade: Wireframe+Blob → Dashboard');
+        const overlay = document.getElementById('draw-animation-overlay');
         const app = document.getElementById('app');
 
-        // Fade out startup overlay
+        // Fade out draw animation overlay
         overlay.classList.add('fade-out');
 
         // Fade in dashboard
         app.classList.add('visible');
-    }, 4000);
+    }, 6500);
 
-    // At 5 seconds: Complete startup, initialize main visualization
+    // At 8 seconds: Complete animation, cleanup and initialize main viz
     setTimeout(() => {
-        console.log('✓ Startup animation complete');
+        console.log('✓ Draw animation complete');
 
-        // Destroy startup visualization
-        if (startupVisualization) {
-            startupVisualization.destroy();
-            startupVisualization = null;
+        // Destroy intro visualization
+        if (introVisualization) {
+            introVisualization.destroy();
+            introVisualization = null;
         }
 
-        // Remove startup overlay from DOM
-        const overlay = document.getElementById('startup-overlay');
+        // Remove draw animation overlay from DOM
+        const overlay = document.getElementById('draw-animation-overlay');
         if (overlay) {
             overlay.remove();
         }
@@ -143,8 +146,8 @@ function playStartupAnimation() {
         visualization = new NeuralNexusVisualization(centerDisplay);
         console.log('✓ Main Neural Nexus visualization initialized');
 
-        isStartupComplete = true;
-    }, 5000);
+        isIntroComplete = true;
+    }, 8000);
 }
 
 // Generate protocol distribution chart
@@ -242,8 +245,8 @@ function updateUI(data) {
     const wasAttackMode = isAttackMode;
     isAttackMode = data.attack_detected || false;
 
-    // Update visualization attack state (only if startup is complete)
-    if (isStartupComplete && visualization) {
+    // Update visualization attack state (only if intro is complete)
+    if (isIntroComplete && visualization) {
         visualization.setAttackMode(isAttackMode);
     }
 
