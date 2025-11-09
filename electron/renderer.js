@@ -46,10 +46,13 @@ let isAttackMode = false;
 const maxDataPoints = 60;
 let latencyHistory = [];
 let packetLossHistory = [];
+let timestampHistory = [];
 
 // Connection tracking
 let allConnections = [];
 let maxLogEntries = 50;
+let seenConnectionIds = new Set();
+let recentConnectionIds = new Set();
 
 // Activity bars
 let activityData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -170,6 +173,13 @@ function updateUI(data) {
         }
     }
 
+    // Update network info
+    if (data.network_info) {
+        document.getElementById('stat-my-ip').textContent = data.network_info.local_ip || '0.0.0.0';
+        document.getElementById('stat-gateway').textContent = data.network_info.gateway || '0.0.0.0';
+        document.getElementById('stat-network').textContent = data.network_info.network || '0.0.0.0/24';
+    }
+
     // Update stats
     document.getElementById('stat-connections').textContent = data.total_connections || 0;
     document.getElementById('stat-unique-ips').textContent = data.unique_ips || 0;
@@ -242,25 +252,52 @@ function updateConnectionLog(connections) {
 
     const logEl = document.getElementById('connection-log');
 
+    // Clear recent connection IDs after 3 seconds
+    setTimeout(() => {
+        recentConnectionIds.clear();
+    }, 3000);
+
     // Add new connections to the top
     connections.forEach(conn => {
+        const connectionId = `${conn.remote_ip}:${conn.remote_port}`;
+
+        // Skip if we've already logged this exact connection recently
+        if (seenConnectionIds.has(connectionId)) {
+            return;
+        }
+
         const isLocal = conn.remote_ip.startsWith('192.168.') ||
                        conn.remote_ip.startsWith('10.') ||
                        conn.remote_ip.startsWith('172.');
 
         const entry = document.createElement('div');
-        entry.className = `log-entry ${isLocal ? 'local' : 'public'}`;
+        entry.className = `log-entry ${isLocal ? 'local' : 'public'} new`;
 
         const prefix = isLocal ? 'LOCAL' : 'REMOTE';
-        entry.textContent = `${prefix} ${conn.remote_ip}:${conn.remote_port} → :${conn.local_port}`;
+        const timestamp = new Date().toLocaleTimeString();
+        entry.textContent = `[${timestamp}] ${prefix} ${conn.remote_ip}:${conn.remote_port} → :${conn.local_port}`;
 
         // Add to top
         logEl.insertBefore(entry, logEl.firstChild);
+
+        // Mark as seen
+        seenConnectionIds.add(connectionId);
+        recentConnectionIds.add(connectionId);
+
+        // Remove "new" class after animation
+        setTimeout(() => {
+            entry.classList.remove('new');
+        }, 3000);
     });
 
     // Keep only recent entries
     while (logEl.children.length > maxLogEntries) {
         logEl.removeChild(logEl.lastChild);
+    }
+
+    // Clear seen connections periodically (every 15 seconds)
+    if (Date.now() % 15000 < 1000) {
+        seenConnectionIds.clear();
     }
 }
 
@@ -289,27 +326,32 @@ function updateTime() {
 
 function updateGraphs(latency, packetLoss) {
     // Add to history
+    const now = new Date();
     latencyHistory.push(latency);
     packetLossHistory.push(packetLoss);
+    timestampHistory.push(now);
 
     // Keep only recent data
     if (latencyHistory.length > maxDataPoints) {
         latencyHistory.shift();
         packetLossHistory.shift();
+        timestampHistory.shift();
     }
 
     // Draw both graphs
-    drawGraph('latency-graph', latencyHistory, '#0F0', 200);
-    drawGraph('packetloss-graph', packetLossHistory, '#F00', 100);
+    drawGraph('latency-graph', latencyHistory, '#0F0', 200, timestampHistory);
+    drawGraph('packetloss-graph', packetLossHistory, '#F00', 100, timestampHistory);
 }
 
-function drawGraph(canvasId, data, color, maxValue) {
+function drawGraph(canvasId, data, color, maxValue, timestamps) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
     const width = canvas.width;
     const height = canvas.height;
+    const padding = 20;
+    const graphHeight = height - padding;
 
     // Clear canvas
     ctx.fillStyle = '#000';
@@ -321,7 +363,7 @@ function drawGraph(canvasId, data, color, maxValue) {
     ctx.strokeStyle = 'rgba(0, 255, 0, 0.1)';
     ctx.lineWidth = 1;
     for (let i = 0; i <= 4; i++) {
-        const y = (height / 4) * i;
+        const y = (graphHeight / 4) * i;
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(width, y);
@@ -339,7 +381,7 @@ function drawGraph(canvasId, data, color, maxValue) {
 
     data.forEach((value, index) => {
         const x = index * pointSpacing;
-        const y = height - (value / maxValue) * height;
+        const y = graphHeight - (value / maxValue) * graphHeight;
 
         if (index === 0) {
             ctx.moveTo(x, y);
@@ -350,6 +392,28 @@ function drawGraph(canvasId, data, color, maxValue) {
 
     ctx.stroke();
     ctx.shadowBlur = 0;
+
+    // Draw time labels (every 15 seconds)
+    if (timestamps && timestamps.length > 0) {
+        ctx.fillStyle = 'rgba(0, 255, 0, 0.6)';
+        ctx.font = '9px Courier New';
+        ctx.textAlign = 'center';
+
+        // Show labels at start, middle, and end
+        const labelIndices = [0, Math.floor(data.length / 2), data.length - 1];
+
+        labelIndices.forEach(index => {
+            if (index < timestamps.length) {
+                const x = index * pointSpacing;
+                const time = timestamps[index].toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                ctx.fillText(time, x, height - 5);
+            }
+        });
+    }
 }
 
 // ============================================================================
