@@ -55,6 +55,55 @@ class DDoSGotchiBackend:
 
         return "127.0.0.1"
 
+    def get_gateway_ip(self):
+        """Get the default gateway IP address"""
+        try:
+            gateways = netifaces.gateways()
+            if 'default' in gateways and netifaces.AF_INET in gateways['default']:
+                return gateways['default'][netifaces.AF_INET][0]
+        except Exception as e:
+            print(f"Error getting gateway IP: {e}")
+
+        return "0.0.0.0"
+
+    def get_network_address(self):
+        """Get the network address (IP/CIDR)"""
+        try:
+            interfaces = netifaces.interfaces()
+            for interface in interfaces:
+                if interface.startswith(('lo', 'docker', 'veth')):
+                    continue
+
+                addrs = netifaces.ifaddresses(interface)
+                if netifaces.AF_INET in addrs:
+                    for addr_info in addrs[netifaces.AF_INET]:
+                        ip = addr_info.get('addr')
+                        netmask = addr_info.get('netmask')
+
+                        if ip and netmask and not ip.startswith('127.'):
+                            # Calculate CIDR notation
+                            cidr = sum([bin(int(x)).count('1') for x in netmask.split('.')])
+
+                            # Calculate network address
+                            ip_parts = [int(x) for x in ip.split('.')]
+                            mask_parts = [int(x) for x in netmask.split('.')]
+                            network_parts = [str(ip_parts[i] & mask_parts[i]) for i in range(4)]
+                            network = '.'.join(network_parts)
+
+                            return f"{network}/{cidr}"
+        except Exception as e:
+            print(f"Error getting network address: {e}")
+
+        return "0.0.0.0/24"
+
+    def get_network_info(self):
+        """Get complete network information"""
+        return {
+            'local_ip': self.get_local_ip(),
+            'gateway': self.get_gateway_ip(),
+            'network': self.get_network_address()
+        }
+
     def measure_latency(self):
         """Measure network latency using ping"""
         try:
@@ -186,9 +235,9 @@ class DDoSGotchiBackend:
                 'packet_loss': self.packet_loss_data[-1] if self.packet_loss_data else 0,
                 'attack_detected': attack_info['attack_detected'],
                 'attack_ips': attack_info['attack_ips'],
-                'threat_level': 'critical' if attack_info['attack_detected'] else 'normal',
+                'threat_level': 'warning' if len(connections) > 20 else ('critical' if attack_info['attack_detected'] else 'normal'),
                 'recent_connections': self.recent_connections,
-                'local_ip': self.get_local_ip()
+                'network_info': self.get_network_info()
             }
 
             # Store for WebSocket broadcast
