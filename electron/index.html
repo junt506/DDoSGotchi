@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DDoS Gotchi v3.0 - HUD Monitor</title>
   <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/"
+    }
+  }
+  </script>
 </head>
 <body>
 
@@ -72,61 +80,9 @@
       <div id="activity-bars"></div>
     </div>
 
-    <!-- Center - 3D Status Indicator -->
+    <!-- Center - Neural Nexus 3D Visualization -->
     <div id="center-display">
-      <div id="status-indicator">
-        <!-- 3D Rotating Figure -->
-        <div id="figure">
-          <!-- Outer ring -->
-          <div id="f1"></div>
-
-          <!-- Rotating tick marks -->
-          <div id="f2"></div>
-
-          <!-- Main circle with crosshairs -->
-          <div id="f3">
-            <div id="f31">
-              <span class="f311"><b></b></span>
-              <span class="f312"><b></b></span>
-            </div>
-            <div id="f32">
-              <span class="f321"></span>
-              <span class="f322"></span>
-            </div>
-            <div id="f33"></div>
-            <div id="f34"></div>
-          </div>
-
-          <!-- Middle ring -->
-          <div id="f4">
-            <div id="f41"></div>
-            <div id="f42"></div>
-            <div id="f43" class="f431"></div>
-            <div id="f43" class="f432"></div>
-            <div id="f43" class="f433"></div>
-            <div id="f43" class="f434"></div>
-          </div>
-
-          <!-- Inner rotating ticks -->
-          <div id="f5"></div>
-
-          <!-- Inner rings -->
-          <div id="f6"></div>
-          <div id="f7">
-            <div id="f71"></div>
-            <div id="f72"></div>
-          </div>
-          <div id="f8">
-            <div id="f81"></div>
-            <div id="f82"></div>
-          </div>
-
-          <!-- Center dot -->
-          <div id="f9">
-            <span></span>
-          </div>
-        </div>
-      </div>
+      <!-- Three.js canvas will be inserted here -->
     </div>
 
     <!-- Right Panel - Live Connection Log -->
@@ -151,7 +107,7 @@
 
 </div>
 
-<script src="renderer.js"></script>
+<script type="module" src="renderer.js"></script>
 
 </body>
 </html>
