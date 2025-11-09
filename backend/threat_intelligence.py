@@ -194,7 +194,8 @@ class ThreatIntelligence:
             'confidence': 0,
             'sources': [],
             'details': {},
-            'tags': []
+            'tags': [],
+            'errors': []  # Track errors for debugging
         }
 
         threat_count = 0
@@ -202,9 +203,16 @@ class ThreatIntelligence:
 
         for result in results:
             if isinstance(result, Exception):
+                error_msg = f"Exception: {str(result)}"
+                threat_data['errors'].append(error_msg)
+                print(f"      [DEBUG] API Exception: {error_msg}")
                 continue
 
             if 'error' in result:
+                source = result.get('source', 'unknown')
+                error_msg = f"{source}: {result['error']}"
+                threat_data['errors'].append(error_msg)
+                print(f"      [DEBUG] API Error - {error_msg}")
                 continue
 
             source = result.get('source', 'unknown')
