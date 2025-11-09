@@ -99,20 +99,20 @@ function playDrawAnimation() {
     console.log('▶ Starting SVG draw animation...');
 
     // Timeline:
-    // 0-6.5s: SVG wireframe draws (staggered rectangles)
-    // 4-6s: Blob appears in center and grows
-    // 6.5-8s: Crossfade (wireframe+blob fade out, dashboard fades in)
-    // 8s: Complete - remove overlay, initialize main visualization
+    // 0-5s: SVG wireframe draws (staggered elements + text labels)
+    // 3.5-5s: Blob smoothly fades in center panel
+    // 5.5-7s: Crossfade (wireframe+blob fade out, dashboard fades in)
+    // 7s: Complete - remove overlay, initialize main visualization
 
-    // At 4 seconds: Initialize blob visualization in intro container
+    // At 3 seconds: Initialize blob visualization (starts visible at 3.5s via CSS)
     setTimeout(() => {
-        console.log('▶ Blob appearing...');
+        console.log('▶ Initializing blob...');
         const introBlobContainer = document.getElementById('intro-blob-container');
         introVisualization = new NeuralNexusVisualization(introBlobContainer);
         console.log('✓ Intro blob initialized');
-    }, 4000);
+    }, 3000);
 
-    // At 6.5 seconds: Begin crossfade
+    // At 5.5 seconds: Begin crossfade
     setTimeout(() => {
         console.log('▶ Crossfade: Wireframe+Blob → Dashboard');
         const overlay = document.getElementById('draw-animation-overlay');
@@ -123,9 +123,9 @@ function playDrawAnimation() {
 
         // Fade in dashboard
         app.classList.add('visible');
-    }, 6500);
+    }, 5500);
 
-    // At 8 seconds: Complete animation, cleanup and initialize main viz
+    // At 7 seconds: Complete animation, cleanup and initialize main viz
     setTimeout(() => {
         console.log('✓ Draw animation complete');
 
@@ -147,7 +147,7 @@ function playDrawAnimation() {
         console.log('✓ Main Neural Nexus visualization initialized');
 
         isIntroComplete = true;
-    }, 8000);
+    }, 7000);
 }
 
 // Generate protocol distribution chart
