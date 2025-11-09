@@ -16,9 +16,29 @@
 </head>
 <body>
 
-<!-- Startup Animation Overlay -->
-<div id="startup-overlay">
-  <div id="startup-blob-container"></div>
+<!-- SVG Draw Animation Overlay -->
+<div id="draw-animation-overlay">
+  <svg id="dashboard-wireframe" viewBox="0 0 1400 900" xmlns="http://www.w3.org/2000/svg">
+    <!-- Header rectangle -->
+    <rect id="header-rect" x="10" y="10" width="1380" height="70" fill="none" stroke="#0F0" stroke-width="2"/>
+
+    <!-- Main content area -->
+    <!-- Left panel -->
+    <rect id="left-panel-rect" x="20" y="100" width="280" height="560" fill="none" stroke="#0F0" stroke-width="2"/>
+
+    <!-- Center display (for blob) -->
+    <rect id="center-rect" x="320" y="100" width="760" height="560" fill="none" stroke="#0F0" stroke-width="2"/>
+
+    <!-- Right panel -->
+    <rect id="right-panel-rect" x="1100" y="100" width="280" height="560" fill="none" stroke="#0F0" stroke-width="2"/>
+
+    <!-- Bottom graphs -->
+    <rect id="graph-left-rect" x="20" y="680" width="660" height="210" fill="none" stroke="#0F0" stroke-width="2"/>
+    <rect id="graph-right-rect" x="700" y="680" width="680" height="210" fill="none" stroke="#0F0" stroke-width="2"/>
+  </svg>
+
+  <!-- Blob container - appears after drawing -->
+  <div id="intro-blob-container"></div>
 </div>
 
 <div id="app">
