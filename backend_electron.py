@@ -9,11 +9,13 @@ import json
 import psutil
 import netifaces
 import time
+import os
 from collections import defaultdict, deque
 from datetime import datetime
 import websockets
 import subprocess
 import re
+from backend.threat_intelligence import ThreatIntelligence
 
 class DDoSGotchiBackend:
     def __init__(self):
@@ -35,6 +37,13 @@ class DDoSGotchiBackend:
         self.last_update = time.time()
         self.connection_check_interval = 1.0
         self.refresh_interval = 15.0
+
+        # Threat Intelligence (optional AbuseIPDB key from environment)
+        abuseipdb_key = os.environ.get('ABUSEIPDB_API_KEY')
+        self.threat_intel = ThreatIntelligence(abuseipdb_key=abuseipdb_key)
+        self.ip_threats = {}  # IP -> threat data
+        self.threat_check_queue = asyncio.Queue()
+        self.last_threat_check = time.time()
 
     def get_local_ip(self):
         """Get the local IP address"""
@@ -207,6 +216,31 @@ class DDoSGotchiBackend:
             'ip_counts': dict(ip_counts)
         }
 
+    async def check_threats(self, unique_ips):
+        """Check unique IPs for threats (rate-limited, async)"""
+        # Only check new IPs we haven't checked yet
+        ips_to_check = [ip for ip in unique_ips if ip not in self.ip_threats]
+
+        # Limit to 5 new checks per iteration to avoid rate limiting
+        ips_to_check = ips_to_check[:5]
+
+        if ips_to_check:
+            # Check IPs in parallel
+            tasks = [self.threat_intel.check_ip(ip) for ip in ips_to_check]
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+
+            # Store results
+            for ip, result in zip(ips_to_check, results):
+                if not isinstance(result, Exception):
+                    self.ip_threats[ip] = result
+
+        # Clean up old entries (keep cache fresh)
+        if len(self.ip_threats) > 500:
+            # Remove oldest 100 entries
+            ips_to_remove = list(self.ip_threats.keys())[:100]
+            for ip in ips_to_remove:
+                del self.ip_threats[ip]
+
     async def monitor_network(self):
         """Main network monitoring loop"""
         while True:
@@ -217,6 +251,16 @@ class DDoSGotchiBackend:
 
             # Detect attacks
             attack_info = self.detect_attack(connections)
+
+            # Get unique IPs
+            unique_ips = list(set(c['remote_ip'] for c in connections if c['remote_ip']))
+
+            # Check for threats (rate-limited, async)
+            await self.check_threats(unique_ips)
+
+            # Count malicious IPs
+            malicious_ips = [ip for ip, threat_data in self.ip_threats.items()
+                            if threat_data.get('is_threat', False) and ip in unique_ips]
 
             # Get new connections (not seen before)
             new_connections = []
@@ -248,7 +292,7 @@ class DDoSGotchiBackend:
             data = {
                 'timestamp': datetime.now().isoformat(),
                 'total_connections': len(connections),
-                'unique_ips': len(set(c['remote_ip'] for c in connections if c['remote_ip'])),
+                'unique_ips': len(unique_ips),
                 'latency': self.latency_data[-1] if self.latency_data else 0,
                 'packet_loss': self.packet_loss_data[-1] if self.packet_loss_data else 0,
                 'attack_detected': attack_info['attack_detected'],
@@ -257,7 +301,12 @@ class DDoSGotchiBackend:
                 'connections': connections,  # All active connections
                 'recent_connections': self.recent_connections,
                 'network_info': self.get_network_info(),
-                'protocol_distribution': protocol_counts
+                'protocol_distribution': protocol_counts,
+                'threats': {
+                    'malicious_count': len(malicious_ips),
+                    'malicious_ips': malicious_ips,
+                    'ip_threat_data': self.ip_threats
+                }
             }
 
             # Store for WebSocket broadcast
