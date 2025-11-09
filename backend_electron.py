@@ -225,14 +225,23 @@ class DDoSGotchiBackend:
         ips_to_check = ips_to_check[:5]
 
         if ips_to_check:
+            print(f"🔍 Checking {len(ips_to_check)} new IP(s) for threats: {', '.join(ips_to_check)}")
+
             # Check IPs in parallel
             tasks = [self.threat_intel.check_ip(ip) for ip in ips_to_check]
             results = await asyncio.gather(*tasks, return_exceptions=True)
 
-            # Store results
+            # Store results and report threats
             for ip, result in zip(ips_to_check, results):
                 if not isinstance(result, Exception):
                     self.ip_threats[ip] = result
+
+                    # Log if threat found
+                    if result.get('is_threat'):
+                        threat_level = result.get('threat_level', 'unknown')
+                        confidence = result.get('confidence', 0)
+                        sources = ', '.join(result.get('sources', []))
+                        print(f"⚠️  THREAT DETECTED: {ip} - {threat_level.upper()} ({confidence}% confidence) - Sources: {sources}")
 
         # Clean up old entries (keep cache fresh)
         if len(self.ip_threats) > 500:
@@ -349,6 +358,13 @@ class DDoSGotchiBackend:
             print("=" * 60)
             print("WebSocket server starting on ws://localhost:8765")
             print("Waiting for Electron frontend to connect...")
+            print("")
+            print("🛡️  Threat Intelligence Status:")
+            print(f"   ✓ GreyNoise: Enabled (free, no API key required)")
+            if self.threat_intel.abuseipdb_key:
+                print(f"   ✓ AbuseIPDB: Enabled (API key configured)")
+            else:
+                print(f"   ℹ AbuseIPDB: Disabled (set ABUSEIPDB_API_KEY to enable)")
             print("=" * 60)
 
             async with websockets.serve(self.websocket_handler, "localhost", 8765):
