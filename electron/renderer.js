@@ -723,7 +723,8 @@ function refreshConnectionLog() {
     // Clear and rebuild log
     logEl.innerHTML = '';
 
-    sortedIPs.slice(0, maxLogEntries).forEach(([ip, entry]) => {
+    const maxEntries = settings.maxLogEntries || 100;
+    sortedIPs.slice(0, maxEntries).forEach(([ip, entry]) => {
         const age = now - entry.firstSeen;
         const isNew = age < 4000;
 
@@ -970,8 +971,9 @@ function updateGraphs(latency, packetLoss) {
     packetLossHistory.push(packetLoss);
     timestampHistory.push(now);
 
-    // Keep only recent data (increased to 120 points for smoother curves)
-    if (latencyHistory.length > maxDataPoints) {
+    // Keep only recent data (use settings value)
+    const maxPoints = settings.maxDataPoints || 120;
+    if (latencyHistory.length > maxPoints) {
         latencyHistory.shift();
         packetLossHistory.shift();
         timestampHistory.shift();
@@ -1005,7 +1007,8 @@ function drawInteractiveGraph(canvasId, data, color, maxValue, timestamps, graph
 
     if (data.length < 2) return;
 
-    const pointSpacing = graphWidth / (maxDataPoints - 1);
+    const maxPoints = settings.maxDataPoints || 120;
+    const pointSpacing = graphWidth / (maxPoints - 1);
 
     // Draw enhanced grid with better quality
     ctx.strokeStyle = 'rgba(0, 255, 0, 0.1)';
