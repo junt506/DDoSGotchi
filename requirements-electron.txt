@@ -5,6 +5,9 @@ psutil>=5.9.0
 # WebSocket server for Electron communication
 websockets>=12.0
 
+# Threat intelligence (async HTTP requests)
+aiohttp>=3.9.0
+
 # Note: Node.js and npm are required for Electron
 # Install Node.js from: https://nodejs.org/
 # Or via package manager:
