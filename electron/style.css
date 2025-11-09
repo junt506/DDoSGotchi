@@ -77,8 +77,8 @@ body {
 #main-content {
   display: flex;
   flex: 1;
-  padding: 20px;
-  gap: 20px;
+  padding: 10px;
+  gap: 10px;
   overflow: hidden;
 }
 
@@ -382,8 +382,8 @@ body {
    ============================================================================ */
 #graphs-area {
   display: flex;
-  gap: 30px;
-  padding: 20px 30px;
+  gap: 15px;
+  padding: 10px 15px;
   height: 300px;
 }
 

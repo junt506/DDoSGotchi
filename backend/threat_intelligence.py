@@ -12,8 +12,9 @@ import ipaddress
 
 
 class ThreatIntelligence:
-    def __init__(self, abuseipdb_key: Optional[str] = None):
+    def __init__(self, abuseipdb_key: Optional[str] = None, enable_greynoise: bool = False):
         self.abuseipdb_key = abuseipdb_key
+        self.enable_greynoise = enable_greynoise
         self.cache = {}  # IP -> threat data cache
         self.cache_ttl = 3600  # 1 hour cache
         self.session = None
@@ -77,13 +78,27 @@ class ThreatIntelligence:
         await self.init_session()
 
         # Run checks in parallel
-        tasks = [
-            self.check_greynoise(ip),
-        ]
+        tasks = []
+
+        # Only check GreyNoise if explicitly enabled
+        if self.enable_greynoise:
+            tasks.append(self.check_greynoise(ip))
 
         # Only check AbuseIPDB if API key is provided
         if self.abuseipdb_key:
             tasks.append(self.check_abuseipdb(ip))
+
+        # If no sources enabled, return benign
+        if not tasks:
+            return {
+                'ip': ip,
+                'is_threat': False,
+                'threat_level': 'benign',
+                'confidence': 0,
+                'sources': [],
+                'details': 'No threat intelligence sources configured',
+                'cached': False
+            }
 
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -212,14 +227,14 @@ class ThreatIntelligence:
             if isinstance(result, Exception):
                 error_msg = f"Exception: {str(result)}"
                 threat_data['errors'].append(error_msg)
-                print(f"      [DEBUG] API Exception: {error_msg}")
+                # Errors tracked in threat_data but not printed to reduce console spam
                 continue
 
             if 'error' in result:
                 source = result.get('source', 'unknown')
                 error_msg = f"{source}: {result['error']}"
                 threat_data['errors'].append(error_msg)
-                print(f"      [DEBUG] API Error - {error_msg}")
+                # Errors tracked in threat_data but not printed to reduce console spam
                 continue
 
             source = result.get('source', 'unknown')

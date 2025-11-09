@@ -1,74 +1,80 @@
-# DDoS Gotchi 🛡️
+# DDoS Gotchi v3.0 🛡️
 
-**Real-time DDoS detection with a retro Pwnagotchi-style interface**
+**Real-time DDoS detection and network threat analysis with Pwnagotchi-style charm**
 
-A desktop application that monitors your network for DDoS attacks, featuring a cute Pwnagotchi character, real-time graphs, and live connection logging.
+A powerful security monitoring tool that combines DDoS detection, threat intelligence, and stunning 3D visualization in a retro-futuristic interface. Perfect for honeypots, security research, and network analysis.
 
 ![Version](https://img.shields.io/badge/version-3.0-green)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
+![Python](https://img.shields.io/badge/python-3.7+-blue)
+![Node](https://img.shields.io/badge/node-16+-green)
 
-## 🖥️ Cross-Platform Support
+## 🌟 Highlights
 
-DDoS Gotchi runs on **Windows**, **macOS**, **Linux** (Ubuntu, Fedora, and other distributions).
+- 🎯 **Real-time Threat Intelligence** - Identify malicious IPs using AbuseIPDB & GreyNoise
+- 🎨 **Stunning 3D Visualization** - 28,000 particle harmonic sphere that reacts to attacks
+- 🛡️ **Honeypot-Ready** - Detection-only mode (no blocking) for security research
+- 📊 **Comprehensive Monitoring** - Connections, protocols, geo-IP, port analysis
+- 🎮 **Pwnagotchi Interface** - Animated faces and witty status messages
+- 🔔 **Smart Alerts** - Desktop notifications and sound alerts for threats
+- 🌍 **Cross-Platform** - Windows, macOS, Linux (Ubuntu, Fedora, etc.)
 
-- ✅ **Windows 10/11** - Full support with `.bat` launchers
-- ✅ **macOS** - Native support (Intel & Apple Silicon)
-- ✅ **Linux** - Ubuntu, Fedora, Debian, and other distributions
-- ✅ **Electron** - Cross-platform desktop app framework
-- ✅ **Python** - Platform-independent backend
+## 🖼️ Screenshots
 
-## 🎯 Two Versions Available
+> *Coming soon - DDoS Gotchi in action!*
 
-### 🚀 Electron HUD (Recommended) - **NEW!**
-- **Futuristic 3D HUD Interface** - Advanced sci-fi monitoring dashboard
-- **Animated 3D elements** - Rotating rings, gauges, and real-time indicators
-- **CSS 3D transforms** - Depth and perspective effects
-- **All moving parts are functional** - Every animation tied to real network data
-- **Color-coded threat states** - Blue (normal), Yellow (warning), Red (attack)
-- Same powerful DDoS detection engine
+## ✨ Key Features
 
-**Launch:** `./run-electron.sh`
+### 🛡️ Threat Intelligence
 
-### 🐍 Desktop Version (Classic)
-- **Simple Tkinter GUI** - Traditional desktop interface
-- **Matplotlib graphs** - Real-time latency and packet loss charts
-- **Lightweight** - Pure Python, no Node.js required
+- **Malicious IP Detection** - Real-time identification of known attackers
+- **AbuseIPDB Integration** - Community-driven abuse database (1000 free checks/day)
+- **GreyNoise Support** - Scanner and malicious actor detection (optional)
+- **Confidence Scoring** - 0-100% threat confidence with source attribution
+- **Visual Indicators** - 💀 MALICIOUS and ⚠️ SUSPICIOUS badges on IPs
+- **Detailed Reports** - Click any IP for full threat intelligence breakdown
 
-**Launch:** `./run-desktop.sh`
+### 🎨 3D Visualization
 
-## ✨ Features
+- **28,000 Particle Harmonic Sphere** - Mathematically generated 3D visualization
+- **Real-time Color Changes** - Green (normal) → Red (attack)
+- **Attack Mode Animations** - 8x faster rotation during DDoS attacks
+- **Trail System** - 10,000 particle data flow effects
+- **Post-Processing** - Bloom and distortion effects for sci-fi aesthetic
+
+### 📊 Network Monitoring
+
+- **Live Connection Tracking** - All active connections with IP details
+- **Protocol Analysis** - TCP, UDP, ICMP breakdown
+- **Port Detection** - Suspicious port highlighting (SSH, RDP, SQL, etc.)
+- **Geo-IP Lookup** - Country, region, city, ISP for all public IPs
+- **Latency & Packet Loss** - Real-time graphs with 24-hour history
+- **Attack Detection** - Multiple threshold-based DDoS detection
 
 ### 🎮 Pwnagotchi Interface
-- **Animated Pwnagotchi faces** - (◕‿‿◕) changes expression based on network state
-- **Random quotes** - Pwnagotchi-style status messages that update every 5 seconds
-- **Attack modes** - Face changes to (╬ಠ益ಠ) when under attack
 
-### 📊 Real-Time Monitoring
-- **Live graphs** - Latency and packet loss visualization using matplotlib
-- **Network stats** - Gateway, IP address, latency, packet loss
-- **Attack detection** - Identifies DDoS patterns (ICMP flood, SYN flood, UDP flood, etc.)
+- **Animated Faces** - (◕‿‿◕) normal, (╬ಠ益ಠ) attack mode
+- **Dynamic Quotes** - Witty status messages that change based on network state
+- **Color Schemes** - Classic green, cyberpunk pink, matrix lime
+- **Settings Panel** - Customizable thresholds, notifications, sounds
 
-### 🌐 Connection Logging
-- **All IPs** - Shows every connection to your machine (both local and public)
-- **Local network highlight** - Local IPs (192.168.x.x) shown in cyan
-- **Auto-refresh** - Logs clear every 15 seconds to catch new connections
-- **Connection count** - Shows total active connections periodically
+### 🔔 Alerts & Notifications
 
-### 🎨 Retro Terminal Aesthetic
-- **Black & green theme** - Classic terminal colors
-- **Monospace fonts** - Courier New for that retro feel
-- **ASCII borders** - Clean retro UI elements
+- **Desktop Notifications** - Native OS notifications for attacks
+- **Sound Alerts** - Synthesized audio (800Hz attack, 600Hz all-clear)
+- **Rate-Limited** - Smart notification throttling to prevent spam
+- **Configurable** - Enable/disable per alert type
 
 ## 🚀 Quick Start
 
-### Electron HUD Version (Recommended)
+### Prerequisites
 
-**Prerequisites:**
-- Python 3.7+
-- Node.js 16+ and npm
+- **Python 3.7+** - Backend monitoring engine
+- **Node.js 16+** - Electron frontend
+- **npm** - Package manager for Node.js
 
-**Installation:**
+### Installation
 
 1. **Clone the repository**
 ```bash
@@ -76,409 +82,264 @@ git clone https://github.com/yourusername/DDoSGotchi.git
 cd DDoSGotchi
 ```
 
-2. **Install Node.js** (if not already installed)
+2. **Install Node.js** (if needed)
 ```bash
-# Windows
-# Download and install from: https://nodejs.org/
+# Ubuntu/Debian
+sudo apt-get install nodejs npm
 
 # Fedora
 sudo dnf install nodejs npm
 
-# Ubuntu/Debian
-sudo apt-get install nodejs npm
-
 # macOS
 brew install node
+
+# Windows - Download from https://nodejs.org/
 ```
 
-3. **Run the launcher** (auto-installs all dependencies)
-
-**Linux/macOS:**
+3. **Run DDoS Gotchi** (auto-installs all dependencies)
 ```bash
+# Linux/macOS
 ./run-electron.sh
-```
 
-**Windows:**
-```cmd
+# Windows
 run-electron.bat
 ```
 
-The launcher will:
-- Install Python dependencies (psutil, netifaces, websockets)
-- Install Electron via npm
-- Start the Python backend server
-- Launch the futuristic HUD interface
+That's it! The launcher handles all Python and Node.js dependencies automatically.
 
----
+## 🔑 Threat Intelligence Setup (Optional)
 
-### Desktop Version (Classic)
+DDoS Gotchi works without API keys, but you'll get enhanced threat detection with them:
 
-**Prerequisites:**
+### AbuseIPDB (Recommended)
 
-**System Packages** (required for matplotlib graphs):
+1. Get your free API key: https://www.abuseipdb.com/account/api
+2. Free tier: **1000 checks/day**
+3. Set the environment variable:
+
 ```bash
+# Linux/macOS
+export ABUSEIPDB_API_KEY="your_key_here"
+./run-electron.sh
+
 # Windows
-# tkinter comes with Python - make sure to check "tcl/tk and IDLE" during Python installation
-
-# Fedora
-sudo dnf install python3-tkinter python3-pillow-tk
-
-# Ubuntu/Debian
-sudo apt-get install python3-tk python3-pil.imagetk
-
-# macOS
-# tkinter comes with Python - no additional packages needed
+set ABUSEIPDB_API_KEY=your_key_here
+run-electron.bat
 ```
 
-**Installation:**
+### GreyNoise (Optional)
 
-1. **Clone the repository** (if not already done)
+GreyNoise is **disabled by default** due to strict rate limits. To enable:
+
 ```bash
-git clone https://github.com/yourusername/DDoSGotchi.git
-cd DDoSGotchi
-```
-
-2. **Run the launcher** (auto-installs dependencies)
-
-**Linux/macOS:**
-```bash
-./run-desktop.sh
-```
-
-**Windows:**
-```cmd
-run-desktop.bat
-```
-
-Or install manually:
-```bash
-pip3 install -r requirements-desktop.txt
-python3 ddos_gotchi_desktop.py
-```
-
-## 📖 How It Works
-
-### Attack Detection
-
-DDoS Gotchi monitors your network for:
-- **High latency** - Sustained latency > 100ms
-- **Packet loss** - Packet loss > 5%
-- **Anomalous patterns** - Traffic compared to baseline
-
-When an attack is detected:
-```
-STATUS:        🚨 UNDER ATTACK
-ATTACK TYPE:   ICMP Flood / Network Saturation
-CONFIDENCE:    85%
-```
-
-### Connection Logging
-
-The live log shows all network activity:
-```
-[14:30:45] System initialized
-[14:30:45] Monitoring all network connections...
-[14:30:47] → LOCAL 192.168.0.100:54321 → :443
-[14:30:48] → 142.250.185.46:443 → :54322
-[14:30:49] → 52.109.88.123:443 → :54323
-[14:31:00] --- 12 active connections ---
-```
-
-- **LOCAL** prefix = connections from your local network (highlighted in cyan)
-- **No prefix** = public IP connections
-
-### Pwnagotchi Quotes
-
-**Normal state:**
-- "monitoring packets..."
-- "sniffing networks..."
-- "analyzing traffic..."
-- "all systems operational"
-
-**Under attack:**
-- "ATTACK DETECTED!"
-- "network under siege!"
-- "defensive mode activated"
-- "threat level: HIGH"
-
-## 🎯 What You'll See
-
-```
-┌─────────────────────────────────────────────┐
-│  ║▌│█║▌│ DDoS GOTCHI v3.0 │▌║█│▌║           │
-├─────────────────────────────────────────────┤
-│  PWNAGOTCHI      │  >>> NETWORK STATUS      │
-│                  │  STATUS:        ✓ NORMAL │
-│    (◕‿‿◕)        │  GATEWAY:       192.168.0.1 │
-│                  │  LATENCY:       1.2 ms   │
-│ monitoring...    │  PACKET LOSS:   0.0 %    │
-├─────────────────────────────────────────────┤
-│  >>> REAL-TIME METRICS (LIVE GRAPHS)        │
-│  [Latency Graph]     [Packet Loss Graph]    │
-├─────────────────────────────────────────────┤
-│  >>> LIVE CONNECTION LOG                    │
-│  [14:30:47] → LOCAL 192.168.0.100:54321     │
-│  [14:30:48] → 142.250.185.46:443            │
-│  [14:30:49] → 52.109.88.123:443             │
-└─────────────────────────────────────────────┘
-```
-
-## 🎛️ Electron HUD Interface Guide
-
-The futuristic HUD interface maps every visual element to real network data:
-
-### **UI Element Mapping:**
-
-| Element | Function | Data Source |
-|---------|----------|-------------|
-| **Top Progress Bar** | Network Load (0-100%) | Current connections / max threshold |
-| **Rotating Needle Gauge** | Latency Indicator | Ping time to 8.8.8.8 (rotates 0-180°) |
-| **Left Blinking Numbers** | Connection Ports/IPs | Recent connection port numbers |
-| **Left Horizontal Bars** | Connection Activity | Per-connection traffic indicators |
-| **Bottom Blinking Segments** | Active Connections | Each segment = 1 active connection |
-| **Top Center** | Pwnagotchi Face + Status | Changes expression based on threat level |
-| **Top Right Panel** | Network Stats | Connections, Unique IPs, Threat Level |
-| **Right Vertical Graph** | Packet Loss History | Real-time packet loss visualization |
-| **Bottom Right Numbers** | Live IP Addresses | Latest connection IP (color-coded) |
-| **Bottom Center Bar** | Threat Level + Quote | Width = threat intensity, color changes on attack |
-| **Bottom Left Bars** | Connections Per Second | Historical bar graph (10 seconds) |
-| **3D Center Figure** | Main Status Indicator | Rotating 3D HUD with latency/packet loss display |
-
-### **Color States:**
-
-- **🔵 Blue** (Normal) - All systems operational, no threats detected
-- **🟡 Yellow** (Warning) - Elevated connection count, monitoring closely
-- **🔴 Red** (Attack) - DDoS attack detected! All elements turn red, face shows (╬ಠ益ಠ)
-
-### **3D Center Figure:**
-
-The rotating 3D element in the center contains:
-- **Outer rings** - Rotate constantly, pulse with network activity
-- **Middle crosshairs** - Targeting indicators, spin during analysis
-- **Inner display** - Shows latency (ms) and packet loss (%)
-- **Center dot** - Pulses with connection frequency
-
-All animations synchronize with real network data - nothing is just for show!
-
-## 🔧 Architecture
-
-### Electron HUD Version
-
-**Frontend (electron/):**
-- **`main.js`** - Electron main process (window management)
-- **`index.html`** - Futuristic HUD layout with 3D elements
-- **`style.css`** - CSS 3D transforms and animations
-  - Perspective effects, rotating elements
-  - Color state transitions (blue → yellow → red)
-  - Attack mode visual overrides
-- **`renderer.js`** - Frontend logic
-  - WebSocket client for real-time data
-  - Dynamic element generation (original CodePen animations)
-  - UI element updates mapped to network metrics
-  - Pwnagotchi face and quote management
-
-**Backend:**
-- **`backend_electron.py`** - WebSocket server
-  - Real-time network monitoring with psutil
-  - DDoS attack detection engine
-  - Latency and packet loss measurement via ping
-  - WebSocket broadcasting to Electron frontend
-
-**Communication:**
-- WebSocket connection on `ws://localhost:8765`
-- JSON data format with network metrics
-- Updates every 1 second
-- Auto-reconnection on disconnect
-
----
-
-### Desktop Version (Classic)
-
-**Backend Components:**
-
-- **`backend/core/network_monitor.py`** - Network monitoring with background thread
-  - Socket-based latency measurement (no ping required)
-  - TCP connection testing for packet loss
-  - Thread-safe caching for non-blocking access
-
-- **`backend/core/attack_detector.py`** - DDoS detection engine
-  - Baseline comparison
-  - Anomaly scoring
-  - Attack classification (ICMP, SYN, UDP floods)
-
-- **`backend/core/network_watcher.py`** - Network change detection
-  - Monitors for network switches
-  - Auto-reconfiguration
-
-**Desktop App:**
-
-- **`ddos_gotchi_desktop.py`** - Main GUI application
-  - Tkinter-based interface
-  - Matplotlib graphs
-  - Real-time connection logging using psutil
-
-## 📋 Requirements
-
-### Electron HUD Version
-
-**Node.js:**
-- Node.js 16+
-- npm (comes with Node.js)
-
-**Python Packages:**
-- `netifaces>=0.11.0` - Network interface detection
-- `psutil>=5.9.0` - System monitoring & connections
-- `websockets>=12.0` - WebSocket server
-
-**JavaScript Packages** (auto-installed via npm):
-- `electron` - Desktop app framework
-
----
-
-### Desktop Version
-
-**Python Packages:**
-- `netifaces>=0.11.0` - Network interface detection
-- `psutil>=5.9.0` - System monitoring & connections
-- `matplotlib>=3.5.0` - Real-time graphs
-
-**System Packages:**
-- `python3-tkinter` - GUI framework
-- `python3-pillow-tk` - Image support for matplotlib
-
-## 🐛 Troubleshooting
-
-### Electron HUD Version
-
-**WebSocket connection errors / "Cannot connect to backend"?**
-```bash
-# Make sure backend is running
-python3 backend_electron.py
-
-# Check if port 8765 is available
-netstat -tuln | grep 8765
-
-# Try restarting both processes
+export ENABLE_GREYNOISE=true
+export ABUSEIPDB_API_KEY="your_key_here"
 ./run-electron.sh
 ```
 
-**Node.js or npm not found?**
+**Note:** GreyNoise Community API has limited free tier. Only enable if needed.
+
+## 📖 Usage
+
+### Understanding the Interface
+
+**Left Panel - Network Status:**
+- Network configuration (IP, gateway, network)
+- Total connections and unique IPs
+- **Threats Detected** counter (turns red when threats found)
+- Latency and packet loss metrics
+- Protocol distribution pie chart
+
+**Center - 3D Visualization:**
+- Green harmonic sphere = Normal operation
+- Red sphere spinning fast = DDoS attack detected!
+- Click and drag to rotate the view
+
+**Right Panel - Active Connections:**
+- Live list of all unique IPs connecting to you
+- **💀 MALICIOUS** badges = Known bad actors (high confidence)
+- **⚠️ SUSPICIOUS** badges = Potentially malicious (medium confidence)
+- Click any IP to see full details (geo, ports, threats)
+
+**Bottom Graphs:**
+- Real-time latency and packet loss over time
+- 2-minute rolling window
+
+### Testing Attack Mode
+
+Want to see the attack visualization? Use the included traffic simulator:
+
 ```bash
-# Fedora
-sudo dnf install nodejs npm
-
-# Ubuntu/Debian
-sudo apt-get install nodejs npm
-
-# macOS
-brew install node
-
-# Verify installation
-node --version
-npm --version
+# In another terminal
+python3 test_attack.py medium
 ```
 
-**Electron app won't start or crashes?**
+The blob will turn red and spin like crazy! 🔴
+
+### Keyboard Shortcuts
+
+- **Ctrl/Cmd + ,** - Open settings panel
+- **Ctrl/Cmd + Shift + C** - Cycle color themes
+- **Ctrl/Cmd + W** - Close app
+
+## 🎨 Customization
+
+### Color Schemes
+
+Three built-in themes available in settings:
+- **Classic** - Retro green terminal (default)
+- **Cyberpunk** - Hot pink futuristic
+- **Matrix** - Bright lime green
+
+### Detection Thresholds
+
+Customize in the settings panel (⚙️):
+- Connection count thresholds (warning: 50, attack: 100)
+- Latency thresholds (warning: 50ms, attack: 200ms)
+- Packet loss thresholds (warning: 5%, attack: 20%)
+- Update interval (default: 1 second)
+
+### Notifications
+
+- Desktop notifications (on/off)
+- Sound alerts (on/off)
+- Alert frequency (rate-limited to prevent spam)
+
+## 🍯 Honeypot Deployment
+
+DDoS Gotchi is perfect for honeypot use:
+
+1. **Detection-only** - Never blocks traffic, only analyzes
+2. **Threat attribution** - Identifies attackers via threat intelligence
+3. **Pattern analysis** - Track attack sources and methods
+4. **Data visualization** - See attacks as they happen in 3D
+
+**Deployment tips:**
+- Deploy on a dedicated monitoring machine
+- Configure firewall to allow all incoming (for analysis)
+- Use AbuseIPDB for threat attribution
+- Monitor the "Threats Detected" counter
+- Export connection logs for forensic analysis
+
+## 🛠️ Advanced Configuration
+
+### Environment Variables
+
 ```bash
-# Reinstall Electron dependencies
+# Threat Intelligence
+export ABUSEIPDB_API_KEY="your_key_here"        # Enable AbuseIPDB
+export ENABLE_GREYNOISE=true                    # Enable GreyNoise (optional)
+
+# Run the app
+./run-electron.sh
+```
+
+### Manual Installation
+
+If you prefer manual setup:
+
+```bash
+# Install Python dependencies
+pip3 install -r requirements-electron.txt
+
+# Install Node.js dependencies
 cd electron
-rm -rf node_modules package-lock.json
 npm install
 cd ..
 
-# Try again
-./run-electron.sh
+# Start backend
+python3 backend_electron.py &
+
+# Start frontend
+cd electron && npm start
 ```
 
-**No data showing in HUD?**
-- Backend might not be running - check terminal output
-- Firewall might be blocking localhost:8765
-- Try running backend manually: `python3 backend_electron.py`
-- Check browser console in dev mode: `npm start -- --dev`
+## 🐛 Troubleshooting
 
----
+### Port 8765 Already in Use
 
-### Desktop Version
-
-**Graphs not showing?**
 ```bash
-# Install matplotlib support
-pip3 install matplotlib
+# Kill the old backend process
+pkill -f backend_electron.py
 
-# Install system packages (Fedora)
-sudo dnf install python3-tkinter python3-pillow-tk
-
-# Install system packages (Ubuntu/Debian)
-sudo apt-get install python3-tk python3-pil.imagetk
+# Or find and kill manually
+ps aux | grep backend_electron.py
+kill <PID>
 ```
 
-### No connections in log?
-- Run with sudo/admin privileges to see all connections
-- Check firewall settings
-- Make sure psutil is installed: `pip3 install psutil`
+### Dependencies Not Installing
 
-### Connection log stops updating?
-- It refreshes every 15 seconds (clears seen IPs)
-- New connections appear immediately
-- Connection count shown every 15 seconds
+```bash
+# Manually install Python deps
+pip3 install -r requirements-electron.txt
 
-## 🎨 Pwnagotchi Faces
+# Manually install Node deps
+cd electron && npm install
+```
 
-The app uses different faces based on state:
+### No Threats Detected
 
-- `(◕‿‿◕)` - Happy (normal operation)
-- `(◕‿◕)✧` - Cool (normal, variant)
-- `ヽ(◕‿‿◕)ﾉ` - Excited (normal, variant)
-- `(╬ಠ益ಠ)` - Angry (under attack!)
+- Make sure AbuseIPDB API key is set correctly
+- Check "Threat Intelligence Status" in console output
+- Most normal connections are benign (this is expected!)
+- Try the test attack script to see detection in action
 
-## 📊 Graph Details
+### Graphs Not Showing
 
-**Latency Graph** (Green)
-- Shows last 100 data points
-- Updates every second
-- Auto-scales Y-axis
-
-**Packet Loss Graph** (Red)
-- Shows last 100 data points
-- 0-100% scale
-- Spikes indicate connection issues
-
-## 🔒 Privacy & Security
-
-- **All monitoring is local** - No data sent to external servers
-- **Read-only log** - Cannot edit or delete log entries
-- **No persistent storage** - Logs cleared on restart
+- Check browser console for errors (Ctrl+Shift+I in Electron)
+- Verify backend is running (check console output)
+- Try refreshing the app (Ctrl+R)
 
 ## 📝 License
 
-MIT License - See [LICENSE](LICENSE) file for details
-
-## 🙏 Credits
-
-Inspired by [Pwnagotchi](https://github.com/evilsocket/pwnagotchi) - the AI-powered WiFi handshake capture tool
+MIT License - see [LICENSE](LICENSE) file for details
 
 ## 🤝 Contributing
 
-Contributions welcome! Feel free to:
-- Report bugs
-- Suggest features
-- Submit pull requests
+Contributions welcome! This is a security research and educational tool.
 
-## 📞 Support
+**Ideas for contributions:**
+- Additional threat intelligence sources
+- Data export functionality (CSV, JSON)
+- Historical threat tracking
+- More visualization modes
+- Performance optimizations
 
-Having issues? Check:
-1. System packages installed (tkinter, pillow-tk)
-2. Python packages installed (`pip3 install -r requirements-desktop.txt`)
-3. Running with sufficient permissions for connection monitoring
+## ⚠️ Disclaimer
 
-## 🎯 Roadmap
+DDoS Gotchi is a **security monitoring and analysis tool** for:
+- Network security research
+- Honeypot deployments
+- DDoS attack detection and analysis
+- Educational purposes
 
-- [ ] Alert notifications for attacks
-- [ ] Export attack logs
-- [ ] Custom attack thresholds
-- [ ] More Pwnagotchi faces and quotes
-- [ ] Dark/light theme toggle
+**Not intended for:**
+- Offensive security operations
+- Automated blocking/filtering (detection-only)
+- Production network protection (use a real IDS/IPS)
+
+Use responsibly and only on networks you own or have permission to monitor.
+
+## 🙏 Credits
+
+- **Pwnagotchi** - Inspiration for the interface style
+- **Three.js** - 3D visualization engine
+- **AbuseIPDB** - Threat intelligence data
+- **GreyNoise** - Scanner detection
+
+## 📚 Documentation
+
+- [Threat Intelligence Guide](THREAT_INTELLIGENCE.md) - Detailed threat intelligence setup
+- [Architecture Overview](docs/ARCHITECTURE.md) - How it all works (coming soon)
+
+## 🔗 Links
+
+- **Report Issues:** https://github.com/yourusername/DDoSGotchi/issues
+- **AbuseIPDB:** https://www.abuseipdb.com/
+- **GreyNoise:** https://greynoise.io/
 
 ---
 
-**Made with ❤️ for network security enthusiasts**
+Made with 💚 for the security research community
+
+**Stay safe, monitor smart!** 🛡️

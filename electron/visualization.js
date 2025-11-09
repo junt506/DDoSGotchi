@@ -427,7 +427,7 @@ export class NeuralNexusVisualization {
         if (!this.dataNodes) return;
 
         const positions = this.dataNodes.geometry.attributes.position.array;
-        const rotationSpeed = this.isAttackMode ? 0.015 : 0.005;
+        const rotationSpeed = this.isAttackMode ? 0.04 : 0.005;  // 8x faster during attacks!
 
         // Rotate the harmonic sphere
         for (let i = 0; i < this.nodeCount; i++) {
@@ -444,12 +444,13 @@ export class NeuralNexusVisualization {
     animate() {
         requestAnimationFrame(() => this.animate());
 
-        this.time += this.isAttackMode ? 0.024 : 0.012;
+        this.time += this.isAttackMode ? 0.06 : 0.012;  // 5x faster during attacks!
 
-        // Rotate background particles
+        // Rotate background particles (faster during attacks)
         if (this.backgroundNodes) {
-            this.backgroundNodes.rotation.y += 0.0004;
-            this.backgroundNodes.rotation.x += 0.00015;
+            const bgSpeed = this.isAttackMode ? 3 : 1;
+            this.backgroundNodes.rotation.y += 0.0004 * bgSpeed;
+            this.backgroundNodes.rotation.x += 0.00015 * bgSpeed;
         }
 
         // Animate sphere rotation
