@@ -15,12 +15,73 @@ body {
   width: 100vw;
 }
 
+/* ============================================================================
+   STARTUP ANIMATION - Xbox-Inspired Boot Sequence
+   ============================================================================ */
+
+/* Startup overlay - fullscreen black background */
+#startup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 1s ease-out;
+}
+
+/* Container for the blob during startup */
+#startup-blob-container {
+  width: 600px;
+  height: 600px;
+  position: relative;
+  transform: scale(0.3);
+  animation: blob-zoom 3s ease-in forwards;
+  animation-delay: 1s;
+}
+
+/* Keyframe: Zoom into the blob (Xbox style) */
+@keyframes blob-zoom {
+  0% {
+    transform: scale(0.3);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(2.5);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(3.5);
+    opacity: 0;
+  }
+}
+
+/* Fade out the entire startup overlay */
+#startup-overlay.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Initially hide the dashboard */
 #app {
   display: flex;
   flex-direction: column;
   height: 100vh;
   width: 100vw;
   background: #000;
+  opacity: 0;
+  transition: opacity 1s ease-in;
+}
+
+/* Show dashboard after startup */
+#app.visible {
+  opacity: 1;
 }
 
 /* ============================================================================
