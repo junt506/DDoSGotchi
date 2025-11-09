@@ -160,21 +160,50 @@ body {
   50%, 100% { opacity: 0.3; }
 }
 
-/* Activity Bars */
-#activity-bars {
-  display: flex;
-  gap: 5px;
-  align-items: flex-end;
-  height: 150px;
-  margin-top: 10px;
+/* Protocol Distribution Chart */
+#protocol-chart {
+  margin-top: 15px;
+  padding: 10px 0;
 }
 
-.activity-bar {
+.protocol-bar-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 8px;
+}
+
+.protocol-label {
+  width: 50px;
+  font-size: 11px;
+  color: #0F0;
+  font-weight: bold;
+  text-align: right;
+}
+
+.protocol-bar-wrapper {
   flex: 1;
-  background: #0F0;
-  min-height: 5px;
-  transition: height 0.3s ease;
-  box-shadow: 0 0 5px #0F0;
+  height: 18px;
+  background: rgba(0, 255, 0, 0.1);
+  border: 1px solid rgba(0, 255, 0, 0.3);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.protocol-bar {
+  height: 100%;
+  transition: width 0.5s ease;
+  box-shadow: 0 0 8px currentColor;
+  position: relative;
+}
+
+.protocol-percentage {
+  width: 40px;
+  font-size: 11px;
+  font-weight: bold;
+  text-align: left;
+  text-shadow: 0 0 5px currentColor;
 }
 
 /* Center Display - Neural Nexus 3D Visualization */

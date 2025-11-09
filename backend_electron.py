@@ -143,22 +143,40 @@ class DDoSGotchiBackend:
         return 0.0
 
     def get_network_connections(self):
-        """Get all active network connections"""
+        """Get all active network connections with protocol information"""
         connections = []
+        protocol_counts = {'TCP': 0, 'UDP': 0, 'ICMP': 0, 'OTHER': 0}
+
         try:
+            import socket
             for conn in psutil.net_connections(kind='inet'):
                 if conn.status == 'ESTABLISHED' and conn.raddr:
+                    # Determine protocol type
+                    protocol = 'OTHER'
+                    if conn.type == socket.SOCK_STREAM:
+                        protocol = 'TCP'
+                        protocol_counts['TCP'] += 1
+                    elif conn.type == socket.SOCK_DGRAM:
+                        protocol = 'UDP'
+                        protocol_counts['UDP'] += 1
+                    elif conn.type == socket.SOCK_RAW:
+                        protocol = 'ICMP'
+                        protocol_counts['ICMP'] += 1
+                    else:
+                        protocol_counts['OTHER'] += 1
+
                     connections.append({
                         'local_ip': conn.laddr.ip if conn.laddr else '',
                         'local_port': conn.laddr.port if conn.laddr else 0,
                         'remote_ip': conn.raddr.ip if conn.raddr else '',
                         'remote_port': conn.raddr.port if conn.raddr else 0,
-                        'status': conn.status
+                        'status': conn.status,
+                        'protocol': protocol
                     })
         except Exception as e:
             print(f"Error getting connections: {e}")
 
-        return connections
+        return connections, protocol_counts
 
     def detect_attack(self, connections):
         """Detect potential DDoS attacks"""
@@ -194,8 +212,8 @@ class DDoSGotchiBackend:
         while True:
             current_time = time.time()
 
-            # Get network connections
-            connections = self.get_network_connections()
+            # Get network connections with protocol information
+            connections, protocol_counts = self.get_network_connections()
 
             # Detect attacks
             attack_info = self.detect_attack(connections)
@@ -237,7 +255,8 @@ class DDoSGotchiBackend:
                 'attack_ips': attack_info['attack_ips'],
                 'threat_level': 'warning' if len(connections) > 20 else ('critical' if attack_info['attack_detected'] else 'normal'),
                 'recent_connections': self.recent_connections,
-                'network_info': self.get_network_info()
+                'network_info': self.get_network_info(),
+                'protocol_distribution': protocol_counts
             }
 
             # Store for WebSocket broadcast
