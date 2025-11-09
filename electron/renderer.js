@@ -1,6 +1,8 @@
 // ============================================================================
-// DDOS GOTCHI v3.0 - Redesigned HUD Renderer
+// DDOS GOTCHI v3.0 - Neural Nexus HUD Renderer
 // ============================================================================
+
+import { NeuralNexusVisualization } from './visualization.js';
 
 // ============================================================================
 // PWNAGOTCHI FACES & QUOTES
@@ -41,18 +43,18 @@ const QUOTES_ATTACK = [
 let ws = null;
 let reconnectInterval = null;
 let isAttackMode = false;
+let visualization = null;
 
 // Graph data storage
-const maxDataPoints = 60;
+const maxDataPoints = 120; // Increased for smoother graphs
 let latencyHistory = [];
 let packetLossHistory = [];
 let timestampHistory = [];
 
-// Connection tracking
-let allConnections = [];
+// Connection tracking - refresh every 4 seconds
+let allConnections = new Map(); // Map<connectionId, {conn, timestamp, isNew}>
 let maxLogEntries = 50;
-let seenConnectionIds = new Set();
-let recentConnectionIds = new Set();
+let connectionLogRefreshInterval = null;
 
 // Activity bars
 let activityData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -62,10 +64,14 @@ let activityData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 // ============================================================================
 
 function init() {
-    console.log('DDoS Gotchi v3.0 - Initializing...');
+    console.log('DDoS Gotchi v3.0 - Neural Nexus Initializing...');
 
-    // Generate dynamic 3D elements
-    generateTickMarks();
+    // Initialize Neural Nexus visualization
+    const centerDisplay = document.getElementById('center-display');
+    visualization = new NeuralNexusVisualization(centerDisplay);
+    console.log('✓ Neural Nexus visualization initialized');
+
+    // Generate activity bars
     generateActivityBars();
 
     // Connect to backend
@@ -75,28 +81,13 @@ function init() {
     setInterval(updateTime, 1000);
     setInterval(() => updateQuote(null, true), 5000);
 
+    // Connection log refresh every 4 seconds
+    connectionLogRefreshInterval = setInterval(refreshConnectionLog, 4000);
+
     // Set initial mode
     document.body.classList.add('mode-normal');
 
     console.log('Initialization complete');
-}
-
-// Generate rotating tick marks for #f2
-function generateTickMarks() {
-    const f2 = document.getElementById('f2');
-    for (let i = 0; i < 36; i++) {
-        const span = document.createElement('span');
-        span.style.transform = `rotateZ(${i * 10}deg) translateY(200px)`;
-        f2.appendChild(span);
-    }
-
-    // Generate inner tick marks for #f5
-    const f5 = document.getElementById('f5');
-    for (let i = 0; i < 18; i++) {
-        const span = document.createElement('span');
-        span.style.transform = `rotateZ(${i * 20}deg) translateY(100px)`;
-        f5.appendChild(span);
-    }
 }
 
 // Generate activity bars
@@ -162,6 +153,11 @@ function updateUI(data) {
     const wasAttackMode = isAttackMode;
     isAttackMode = data.attack_detected || false;
 
+    // Update visualization attack state
+    if (visualization) {
+        visualization.setAttackMode(isAttackMode);
+    }
+
     // Switch modes
     if (isAttackMode !== wasAttackMode) {
         if (isAttackMode) {
@@ -204,15 +200,15 @@ function updateUI(data) {
     // Update Pwnagotchi face
     updateFace(data);
 
-    // Update connection log
+    // Track connections
     if (data.recent_connections) {
-        updateConnectionLog(data.recent_connections);
+        trackConnections(data.recent_connections);
     }
 
     // Update activity bars
     updateActivityBars(data.total_connections);
 
-    // Update graphs
+    // Update graphs (faster for smoother display)
     updateGraphs(data.latency || 0, data.packet_loss || 0);
 }
 
@@ -247,58 +243,69 @@ function updateQuote(customQuote = null, checkAttack = true) {
     }
 }
 
-function updateConnectionLog(connections) {
+// Track connections with timestamps
+function trackConnections(connections) {
     if (!connections || connections.length === 0) return;
 
-    const logEl = document.getElementById('connection-log');
+    const now = Date.now();
 
-    // Clear recent connection IDs after 3 seconds
-    setTimeout(() => {
-        recentConnectionIds.clear();
-    }, 3000);
-
-    // Add new connections to the top
     connections.forEach(conn => {
         const connectionId = `${conn.remote_ip}:${conn.remote_port}`;
 
-        // Skip if we've already logged this exact connection recently
-        if (seenConnectionIds.has(connectionId)) {
-            return;
+        if (!allConnections.has(connectionId)) {
+            // New connection
+            allConnections.set(connectionId, {
+                conn: conn,
+                timestamp: now,
+                isNew: true
+            });
         }
+    });
+
+    // Remove old connections (older than 30 seconds)
+    for (const [id, entry] of allConnections.entries()) {
+        if (now - entry.timestamp > 30000) {
+            allConnections.delete(id);
+        }
+    }
+}
+
+// Refresh connection log every 4 seconds
+function refreshConnectionLog() {
+    const logEl = document.getElementById('connection-log');
+    logEl.innerHTML = ''; // Clear log
+
+    const now = Date.now();
+    const sortedConnections = Array.from(allConnections.entries())
+        .sort((a, b) => b[1].timestamp - a[1].timestamp); // Newest first
+
+    sortedConnections.slice(0, maxLogEntries).forEach(([connectionId, entry]) => {
+        const conn = entry.conn;
+        const age = now - entry.timestamp;
+        const isNew = age < 4000; // New if less than 4 seconds old
 
         const isLocal = conn.remote_ip.startsWith('192.168.') ||
                        conn.remote_ip.startsWith('10.') ||
                        conn.remote_ip.startsWith('172.');
 
-        const entry = document.createElement('div');
-        entry.className = `log-entry ${isLocal ? 'local' : 'public'} new`;
+        const logEntry = document.createElement('div');
+
+        // Red for new connections, green for existing
+        if (isNew) {
+            logEntry.className = `log-entry new-connection ${isLocal ? 'local' : 'public'}`;
+        } else {
+            logEntry.className = `log-entry ${isLocal ? 'local' : 'public'}`;
+        }
 
         const prefix = isLocal ? 'LOCAL' : 'REMOTE';
-        const timestamp = new Date().toLocaleTimeString();
-        entry.textContent = `[${timestamp}] ${prefix} ${conn.remote_ip}:${conn.remote_port} → :${conn.local_port}`;
+        const timestamp = new Date(entry.timestamp).toLocaleTimeString();
+        logEntry.textContent = `[${timestamp}] ${prefix} ${conn.remote_ip}:${conn.remote_port} → :${conn.local_port}`;
 
-        // Add to top
-        logEl.insertBefore(entry, logEl.firstChild);
+        logEl.appendChild(logEntry);
 
-        // Mark as seen
-        seenConnectionIds.add(connectionId);
-        recentConnectionIds.add(connectionId);
-
-        // Remove "new" class after animation
-        setTimeout(() => {
-            entry.classList.remove('new');
-        }, 3000);
+        // Mark as not new after first display
+        entry.isNew = false;
     });
-
-    // Keep only recent entries
-    while (logEl.children.length > maxLogEntries) {
-        logEl.removeChild(logEl.lastChild);
-    }
-
-    // Clear seen connections periodically (every 15 seconds)
-    if (Date.now() % 15000 < 1000) {
-        seenConnectionIds.clear();
-    }
 }
 
 function updateActivityBars(totalConnections) {
@@ -321,7 +328,7 @@ function updateTime() {
 }
 
 // ============================================================================
-// GRAPHS
+// GRAPHS - FASTER UPDATE FOR SMOOTHER DISPLAY
 // ============================================================================
 
 function updateGraphs(latency, packetLoss) {
@@ -331,7 +338,7 @@ function updateGraphs(latency, packetLoss) {
     packetLossHistory.push(packetLoss);
     timestampHistory.push(now);
 
-    // Keep only recent data
+    // Keep only recent data (increased to 120 points for smoother curves)
     if (latencyHistory.length > maxDataPoints) {
         latencyHistory.shift();
         packetLossHistory.shift();
@@ -370,14 +377,33 @@ function drawGraph(canvasId, data, color, maxValue, timestamps) {
         ctx.stroke();
     }
 
-    // Draw data line
+    // Fill area under the line for smoother look
+    ctx.fillStyle = color.replace(')', ', 0.1)').replace('rgb', 'rgba').replace('#0F0', 'rgba(0, 255, 0, 0.1)').replace('#F00', 'rgba(255, 0, 0, 0.1)');
+    ctx.beginPath();
+
+    const pointSpacing = width / (maxDataPoints - 1);
+
+    // Start from bottom left
+    ctx.moveTo(0, graphHeight);
+
+    // Draw curve
+    data.forEach((value, index) => {
+        const x = index * pointSpacing;
+        const y = graphHeight - (value / maxValue) * graphHeight;
+        ctx.lineTo(x, y);
+    });
+
+    // Complete the area
+    ctx.lineTo((data.length - 1) * pointSpacing, graphHeight);
+    ctx.closePath();
+    ctx.fill();
+
+    // Draw data line on top
     ctx.strokeStyle = color;
     ctx.lineWidth = 2;
     ctx.shadowBlur = 5;
     ctx.shadowColor = color;
     ctx.beginPath();
-
-    const pointSpacing = width / (maxDataPoints - 1);
 
     data.forEach((value, index) => {
         const x = index * pointSpacing;
@@ -393,7 +419,7 @@ function drawGraph(canvasId, data, color, maxValue, timestamps) {
     ctx.stroke();
     ctx.shadowBlur = 0;
 
-    // Draw time labels (every 15 seconds)
+    // Draw time labels
     if (timestamps && timestamps.length > 0) {
         ctx.fillStyle = 'rgba(0, 255, 0, 0.6)';
         ctx.font = '9px Courier New';

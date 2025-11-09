@@ -177,18 +177,20 @@ body {
   box-shadow: 0 0 5px #0F0;
 }
 
-/* Center Display - 3D Circle */
+/* Center Display - Neural Nexus 3D Visualization */
 #center-display {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
 }
 
-#status-indicator {
-  position: relative;
-  width: 400px;
-  height: 400px;
+#center-display canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 /* ============================================================================
@@ -561,6 +563,21 @@ body.mode-attack #figure {
 
 .log-entry.public {
   color: #0F0;
+}
+
+/* New connections - RED highlight (refreshes every 4 seconds) */
+.log-entry.new-connection {
+  color: #F00 !important;
+  text-shadow: 0 0 5px #F00 !important;
+  border-left-color: #F00 !important;
+  background: rgba(255, 0, 0, 0.15) !important;
+  font-weight: bold;
+  animation: pulse-red 1s ease-in-out infinite;
+}
+
+@keyframes pulse-red {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
 }
 
 .log-entry.new::before {
