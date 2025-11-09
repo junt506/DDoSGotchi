@@ -365,29 +365,34 @@ export class NeuralNexusVisualization {
     setAttackMode(isAttack) {
         this.isAttackMode = isAttack;
 
-        // Change colors when attack mode changes
+        // Generate new color scheme based on mode
+        const baseColor = isAttack ? '#ff0000' : '#00ff00';
+        this.colorScheme = this.generateColorScheme(baseColor);
+
+        // Reassign data node colors with variation
         if (this.dataNodes) {
             const colors = this.dataNodes.geometry.attributes.color.array;
-            const targetColor = isAttack ? new THREE.Color('#ff0000') : new THREE.Color('#00ff00');
+            const sizes = this.dataNodes.geometry.attributes.size.array;
 
             for (let i = 0; i < this.nodeCount; i++) {
-                colors[i * 3] = targetColor.r;
-                colors[i * 3 + 1] = targetColor.g;
-                colors[i * 3 + 2] = targetColor.b;
+                this.assignParticleProperties(i, colors, sizes);
             }
 
             this.dataNodes.geometry.attributes.color.needsUpdate = true;
         }
 
-        // Change trail colors too
+        // Reassign trail colors with variation
         if (this.trailSystem) {
             const colors = this.trailSystem.geometry.attributes.color.array;
-            const targetColor = isAttack ? new THREE.Color('#ff0000') : new THREE.Color('#00ff00');
 
             for (let i = 0; i < this.trailCount; i++) {
-                colors[i * 3] = targetColor.r;
-                colors[i * 3 + 1] = targetColor.g;
-                colors[i * 3 + 2] = targetColor.b;
+                const channelIndex = Math.floor((i / this.trailCount) * 12);
+                const color = this.colorScheme[channelIndex % this.colorScheme.length];
+                const brightness = 0.6 + Math.random() * 0.4;
+
+                colors[i * 3] = color.r * brightness;
+                colors[i * 3 + 1] = color.g * brightness;
+                colors[i * 3 + 2] = color.b * brightness;
             }
 
             this.trailSystem.geometry.attributes.color.needsUpdate = true;
