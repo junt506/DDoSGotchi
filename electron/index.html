@@ -19,22 +19,30 @@
 <!-- SVG Draw Animation Overlay -->
 <div id="draw-animation-overlay">
   <svg id="dashboard-wireframe" viewBox="0 0 1400 900" xmlns="http://www.w3.org/2000/svg">
-    <!-- Header rectangle -->
-    <rect id="header-rect" x="10" y="10" width="1380" height="70" fill="none" stroke="#0F0" stroke-width="2"/>
+    <!-- Header (matches actual 80px height) -->
+    <rect id="header-border" x="30" y="15" width="1340" height="80" fill="none" stroke="#0F0" stroke-width="2"/>
+    <line id="header-divider" x1="30" y1="95" x2="1370" y2="95" stroke="#0F0" stroke-width="2"/>
 
-    <!-- Main content area -->
-    <!-- Left panel -->
-    <rect id="left-panel-rect" x="20" y="100" width="280" height="560" fill="none" stroke="#0F0" stroke-width="2"/>
+    <!-- Main content area (20px padding, gap: 20px) -->
+    <!-- Left Panel: 300px width -->
+    <rect id="left-panel-border" x="40" y="115" width="300" height="545" fill="none" stroke="#0F0" stroke-width="2"/>
+    <text id="left-panel-title" x="190" y="140" fill="#0F0" font-family="monospace" font-size="14" text-anchor="middle">[ NETWORK STATUS ]</text>
+    <line id="left-divider" x1="60" y1="380" x2="320" y2="380" stroke="#0F0" stroke-width="1"/>
+    <text id="protocol-title" x="190" y="405" fill="#0F0" font-family="monospace" font-size="14" text-anchor="middle">[ PROTOCOL DISTRIBUTION ]</text>
 
-    <!-- Center display (for blob) -->
-    <rect id="center-rect" x="320" y="100" width="760" height="560" fill="none" stroke="#0F0" stroke-width="2"/>
+    <!-- Center Display: flex space (blob goes here) -->
+    <rect id="center-border" x="360" y="115" width="680" height="545" fill="none" stroke="#0F0" stroke-width="2"/>
 
-    <!-- Right panel -->
-    <rect id="right-panel-rect" x="1100" y="100" width="280" height="560" fill="none" stroke="#0F0" stroke-width="2"/>
+    <!-- Right Panel: 350px width -->
+    <rect id="right-panel-border" x="1060" y="115" width="300" height="545" fill="none" stroke="#0F0" stroke-width="2"/>
+    <text id="right-panel-title" x="1210" y="140" fill="#0F0" font-family="monospace" font-size="14" text-anchor="middle">[ ACTIVE CONNECTIONS ]</text>
 
-    <!-- Bottom graphs -->
-    <rect id="graph-left-rect" x="20" y="680" width="660" height="210" fill="none" stroke="#0F0" stroke-width="2"/>
-    <rect id="graph-right-rect" x="700" y="680" width="680" height="210" fill="none" stroke="#0F0" stroke-width="2"/>
+    <!-- Bottom Graphs Area (gap: 30px, height: 300px) -->
+    <rect id="graph-left-border" x="40" y="680" width="640" height="200" fill="none" stroke="#0F0" stroke-width="2"/>
+    <text id="graph-left-title" x="360" y="705" fill="#0F0" font-family="monospace" font-size="12" text-anchor="middle">LATENCY (MS)</text>
+
+    <rect id="graph-right-border" x="710" y="680" width="650" height="200" fill="none" stroke="#0F0" stroke-width="2"/>
+    <text id="graph-right-title" x="1035" y="705" fill="#0F0" font-family="monospace" font-size="12" text-anchor="middle">PACKET LOSS (%)</text>
   </svg>
 
   <!-- Blob container - appears after drawing -->

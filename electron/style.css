@@ -46,53 +46,73 @@ body {
   opacity: 1;
 }
 
-/* Draw animation for all rectangles */
-#dashboard-wireframe rect {
-  stroke-dasharray: 3000;
-  stroke-dashoffset: 3000;
-  animation: draw-line 4s ease-out forwards;
+/* Draw animation for all SVG elements */
+#dashboard-wireframe rect,
+#dashboard-wireframe line {
+  stroke-dasharray: 2000;
+  stroke-dashoffset: 2000;
+  animation: draw-stroke 2.5s ease-out forwards;
   filter: drop-shadow(0 0 5px #0F0);
 }
 
-/* Stagger the drawing of each element */
-#header-rect { animation-delay: 0s; }
-#left-panel-rect { animation-delay: 0.5s; }
-#center-rect { animation-delay: 1s; }
-#right-panel-rect { animation-delay: 1.5s; }
-#graph-left-rect { animation-delay: 2s; }
-#graph-right-rect { animation-delay: 2.5s; }
+#dashboard-wireframe text {
+  opacity: 0;
+  animation: fade-in-text 0.5s ease-out forwards;
+  filter: drop-shadow(0 0 5px #0F0);
+}
 
-@keyframes draw-line {
+@keyframes draw-stroke {
   to {
     stroke-dashoffset: 0;
   }
 }
 
-/* Blob container - appears in center after drawing */
-#intro-blob-container {
-  position: absolute;
-  width: 600px;
-  height: 600px;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  opacity: 0;
-  animation: blob-appear 2s ease-out forwards;
-  animation-delay: 4s; /* Start after wireframe is drawn */
+@keyframes fade-in-text {
+  to {
+    opacity: 1;
+  }
 }
 
-@keyframes blob-appear {
+/* Staggered timing for dashboard elements */
+#header-border { animation-delay: 0s; }
+#header-divider { animation-delay: 0.3s; }
+
+#left-panel-border { animation-delay: 0.6s; }
+#left-panel-title { animation-delay: 1.2s; }
+#left-divider { animation-delay: 1.4s; }
+#protocol-title { animation-delay: 1.6s; }
+
+#center-border { animation-delay: 0.9s; }
+
+#right-panel-border { animation-delay: 1.2s; }
+#right-panel-title { animation-delay: 1.8s; }
+
+#graph-left-border { animation-delay: 1.5s; }
+#graph-left-title { animation-delay: 2.1s; }
+
+#graph-right-border { animation-delay: 1.8s; }
+#graph-right-title { animation-delay: 2.4s; }
+
+/* Blob container - smooth fade-in after wireframe completes */
+#intro-blob-container {
+  position: absolute;
+  width: 680px;
+  height: 545px;
+  top: 387px;  /* Matches center-border position */
+  left: 360px;
+  opacity: 0;
+  animation: blob-fade-in 1.5s ease-out forwards;
+  animation-delay: 3.5s; /* Start after wireframe is mostly drawn */
+}
+
+@keyframes blob-fade-in {
   0% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.5);
-  }
-  50% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1.1);
+    transform: scale(0.92);
   }
   100% {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+    transform: scale(1);
   }
 }
 
