@@ -613,8 +613,8 @@ function updateUI(data) {
     updateFace(data);
 
     // Track connections
-    if (data.recent_connections) {
-        trackConnections(data.recent_connections);
+    if (data.connections) {
+        trackConnections(data.connections);
     }
 
     // Update protocol distribution

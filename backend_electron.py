@@ -254,6 +254,7 @@ class DDoSGotchiBackend:
                 'attack_detected': attack_info['attack_detected'],
                 'attack_ips': attack_info['attack_ips'],
                 'threat_level': 'warning' if len(connections) > 20 else ('critical' if attack_info['attack_detected'] else 'normal'),
+                'connections': connections,  # All active connections
                 'recent_connections': self.recent_connections,
                 'network_info': self.get_network_info(),
                 'protocol_distribution': protocol_counts
