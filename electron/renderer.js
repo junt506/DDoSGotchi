@@ -37,6 +37,32 @@ const QUOTES_ATTACK = [
 ];
 
 // ============================================================================
+// CONFIGURATION & SETTINGS
+// ============================================================================
+
+const DEFAULT_SETTINGS = {
+    // Attack detection thresholds
+    latencyWarning: 50,
+    latencyAttack: 200,
+    packetLossWarning: 5,
+    packetLossAttack: 20,
+    connectionWarning: 50,
+    connectionAttack: 100,
+
+    // UI preferences
+    updateInterval: 1000, // ms
+    soundAlerts: true,
+    desktopNotifications: true,
+    colorScheme: 'classic', // classic, cyberpunk, matrix
+
+    // Performance
+    maxDataPoints: 120,
+    maxLogEntries: 100,
+};
+
+let settings = {...DEFAULT_SETTINGS};
+
+// ============================================================================
 // STATE VARIABLES
 // ============================================================================
 
@@ -44,21 +70,35 @@ let ws = null;
 let reconnectInterval = null;
 let isAttackMode = false;
 let visualization = null;
+let lastNotificationTime = 0;
+let attackStartTime = null;
 
 // Graph data storage
-const maxDataPoints = 120; // Increased for smoother graphs
 let latencyHistory = [];
 let packetLossHistory = [];
 let timestampHistory = [];
 
+// Historical data (last 24 hours)
+let historicalData = [];
+const maxHistoricalHours = 24;
+
 // Connection tracking - refresh every 4 seconds
-let connectionsByIP = new Map(); // Map<ip, {firstSeen, lastSeen, ports: Set, connCount, isLocal}>
+let connectionsByIP = new Map(); // Map<ip, {firstSeen, lastSeen, ports: Set, connCount, isLocal, bytes}>
 let maxLogEntries = 50;
 let connectionLogRefreshInterval = null;
 let lastRefreshTime = 0;
 
 // Protocol distribution tracking
 let protocolData = {TCP: 0, UDP: 0, ICMP: 0, OTHER: 0};
+
+// Suspicious ports list
+const SUSPICIOUS_PORTS = new Set([
+    21, 22, 23, 25, 53, 135, 137, 138, 139, 445, 1433, 1434, 3306, 3389, 5900, 8080
+]);
+
+// Sound alert context
+let audioContext = null;
+let lastAlertSound = 0;
 
 // ============================================================================
 // INITIALIZATION
@@ -67,6 +107,18 @@ let protocolData = {TCP: 0, UDP: 0, ICMP: 0, OTHER: 0};
 function init() {
     console.log('DDoS Gotchi v3.0 - Neural Nexus Initializing...');
 
+    // Request notification permission
+    requestNotificationPermission();
+
+    // Initialize audio context for sound alerts
+    initAudioContext();
+
+    // Load saved settings
+    loadSettings();
+
+    // Apply color scheme
+    applyColorScheme(settings.colorScheme);
+
     // Generate protocol chart
     generateProtocolChart();
 
@@ -74,6 +126,9 @@ function init() {
     const centerDisplay = document.getElementById('center-display');
     visualization = new NeuralNexusVisualization(centerDisplay);
     console.log('✓ Neural Nexus visualization online');
+
+    // Add settings panel
+    createSettingsPanel();
 
     // Connect to backend
     connectWebSocket();
@@ -85,11 +140,299 @@ function init() {
     // Connection log refresh every 4 seconds
     connectionLogRefreshInterval = setInterval(refreshConnectionLog, 4000);
 
+    // Historical data cleanup (every hour)
+    setInterval(cleanupHistoricalData, 3600000);
+
     // Set initial mode
     document.body.classList.add('mode-normal');
 
+    // Add keyboard shortcuts
+    setupKeyboardShortcuts();
+
     console.log('Initialization complete');
 }
+
+// ============================================================================
+// NOTIFICATIONS & ALERTS
+// ============================================================================
+
+function requestNotificationPermission() {
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+}
+
+function showDesktopNotification(title, body, urgent = false) {
+    if (!settings.desktopNotifications) return;
+    if ('Notification' in window && Notification.permission === 'granted') {
+        const now = Date.now();
+        // Rate limit: no more than 1 notification per 10 seconds
+        if (now - lastNotificationTime < 10000) return;
+
+        lastNotificationTime = now;
+
+        const notification = new Notification(title, {
+            body: body,
+            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="70" font-size="60">🛡️</text></svg>',
+            badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="70" font-size="60">⚠️</text></svg>',
+            requireInteraction: urgent,
+        });
+
+        notification.onclick = () => {
+            window.focus();
+            notification.close();
+        };
+
+        // Auto-close after 5 seconds if not urgent
+        if (!urgent) {
+            setTimeout(() => notification.close(), 5000);
+        }
+    }
+}
+
+function playAlertSound(frequency = 800, duration = 100) {
+    if (!settings.soundAlerts) return;
+
+    const now = Date.now();
+    // Rate limit: no more than 1 sound per second
+    if (now - lastAlertSound < 1000) return;
+    lastAlertSound = now;
+
+    if (!audioContext) return;
+
+    try {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.value = frequency;
+        oscillator.type = 'sine';
+
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + duration / 1000);
+    } catch (error) {
+        console.error('Audio error:', error);
+    }
+}
+
+function initAudioContext() {
+    try {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (error) {
+        console.warn('Audio context not available:', error);
+    }
+}
+
+// ============================================================================
+// SETTINGS MANAGEMENT
+// ============================================================================
+
+function loadSettings() {
+    try {
+        const saved = localStorage.getItem('ddosGotchiSettings');
+        if (saved) {
+            settings = {...DEFAULT_SETTINGS, ...JSON.parse(saved)};
+        }
+    } catch (error) {
+        console.error('Failed to load settings:', error);
+    }
+}
+
+function saveSettings() {
+    try {
+        localStorage.setItem('ddosGotchiSettings', JSON.stringify(settings));
+    } catch (error) {
+        console.error('Failed to save settings:', error);
+    }
+}
+
+function applyColorScheme(scheme) {
+    document.body.classList.remove('theme-classic', 'theme-cyberpunk', 'theme-matrix');
+    document.body.classList.add(`theme-${scheme}`);
+}
+
+// ============================================================================
+// HISTORICAL DATA
+// ============================================================================
+
+function trackHistoricalData(data) {
+    const now = new Date();
+    historicalData.push({
+        timestamp: now.getTime(),
+        latency: data.latency || 0,
+        packetLoss: data.packet_loss || 0,
+        connections: data.total_connections || 0,
+        attackDetected: data.attack_detected || false,
+    });
+}
+
+function cleanupHistoricalData() {
+    const cutoffTime = Date.now() - (maxHistoricalHours * 3600000);
+    historicalData = historicalData.filter(entry => entry.timestamp > cutoffTime);
+}
+
+// ============================================================================
+// KEYBOARD SHORTCUTS
+// ============================================================================
+
+function setupKeyboardShortcuts() {
+    document.addEventListener('keydown', (e) => {
+        // Ctrl/Cmd + , for settings
+        if ((e.ctrlKey || e.metaKey) && e.key === ',') {
+            e.preventDefault();
+            toggleSettingsPanel();
+        }
+        // Ctrl/Cmd + Shift + C for color scheme cycling
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'C') {
+            e.preventDefault();
+            cycleColorScheme();
+        }
+    });
+}
+
+function cycleColorScheme() {
+    const schemes = ['classic', 'cyberpunk', 'matrix'];
+    const currentIndex = schemes.indexOf(settings.colorScheme);
+    const nextIndex = (currentIndex + 1) % schemes.length;
+    settings.colorScheme = schemes[nextIndex];
+    applyColorScheme(settings.colorScheme);
+    saveSettings();
+}
+
+// ============================================================================
+// SETTINGS PANEL UI
+// ============================================================================
+
+function createSettingsPanel() {
+    const panel = document.createElement('div');
+    panel.id = 'settings-panel';
+    panel.className = 'settings-panel hidden';
+    panel.innerHTML = `
+        <div class="settings-content">
+            <div class="settings-header">
+                <h2>⚙️ Settings</h2>
+                <button class="close-btn" onclick="toggleSettingsPanel()">×</button>
+            </div>
+            <div class="settings-body">
+                <div class="settings-section">
+                    <h3>Attack Detection Thresholds</h3>
+                    <div class="setting-item">
+                        <label>Latency Warning (ms):</label>
+                        <input type="number" id="setting-latency-warning" value="${settings.latencyWarning}" min="10" max="500">
+                    </div>
+                    <div class="setting-item">
+                        <label>Latency Attack (ms):</label>
+                        <input type="number" id="setting-latency-attack" value="${settings.latencyAttack}" min="50" max="1000">
+                    </div>
+                    <div class="setting-item">
+                        <label>Packet Loss Warning (%):</label>
+                        <input type="number" id="setting-packet-warning" value="${settings.packetLossWarning}" min="1" max="20">
+                    </div>
+                    <div class="setting-item">
+                        <label>Packet Loss Attack (%):</label>
+                        <input type="number" id="setting-packet-attack" value="${settings.packetLossAttack}" min="5" max="50">
+                    </div>
+                    <div class="setting-item">
+                        <label>Connection Warning:</label>
+                        <input type="number" id="setting-conn-warning" value="${settings.connectionWarning}" min="10" max="200">
+                    </div>
+                    <div class="setting-item">
+                        <label>Connection Attack:</label>
+                        <input type="number" id="setting-conn-attack" value="${settings.connectionAttack}" min="50" max="500">
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Alerts & Notifications</h3>
+                    <div class="setting-item">
+                        <label>Desktop Notifications:</label>
+                        <input type="checkbox" id="setting-notifications" ${settings.desktopNotifications ? 'checked' : ''}>
+                    </div>
+                    <div class="setting-item">
+                        <label>Sound Alerts:</label>
+                        <input type="checkbox" id="setting-sound" ${settings.soundAlerts ? 'checked' : ''}>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Appearance</h3>
+                    <div class="setting-item">
+                        <label>Color Scheme:</label>
+                        <select id="setting-color-scheme">
+                            <option value="classic" ${settings.colorScheme === 'classic' ? 'selected' : ''}>Classic Green</option>
+                            <option value="cyberpunk" ${settings.colorScheme === 'cyberpunk' ? 'selected' : ''}>Cyberpunk Pink</option>
+                            <option value="matrix" ${settings.colorScheme === 'matrix' ? 'selected' : ''}>Matrix Lime</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Performance</h3>
+                    <div class="setting-item">
+                        <label>Update Interval (ms):</label>
+                        <input type="number" id="setting-update-interval" value="${settings.updateInterval}" min="500" max="5000" step="500">
+                    </div>
+                </div>
+            </div>
+            <div class="settings-footer">
+                <button class="btn-save" onclick="saveSettingsFromPanel()">Save Settings</button>
+                <button class="btn-reset" onclick="resetSettings()">Reset to Defaults</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(panel);
+
+    // Add click outside to close
+    panel.addEventListener('click', (e) => {
+        if (e.target === panel) {
+            toggleSettingsPanel();
+        }
+    });
+}
+
+function toggleSettingsPanel() {
+    const panel = document.getElementById('settings-panel');
+    if (panel) {
+        panel.classList.toggle('hidden');
+    }
+}
+
+function saveSettingsFromPanel() {
+    settings.latencyWarning = parseInt(document.getElementById('setting-latency-warning').value);
+    settings.latencyAttack = parseInt(document.getElementById('setting-latency-attack').value);
+    settings.packetLossWarning = parseInt(document.getElementById('setting-packet-warning').value);
+    settings.packetLossAttack = parseInt(document.getElementById('setting-packet-attack').value);
+    settings.connectionWarning = parseInt(document.getElementById('setting-conn-warning').value);
+    settings.connectionAttack = parseInt(document.getElementById('setting-conn-attack').value);
+    settings.desktopNotifications = document.getElementById('setting-notifications').checked;
+    settings.soundAlerts = document.getElementById('setting-sound').checked;
+    settings.colorScheme = document.getElementById('setting-color-scheme').value;
+    settings.updateInterval = parseInt(document.getElementById('setting-update-interval').value);
+
+    applyColorScheme(settings.colorScheme);
+    saveSettings();
+
+    showDesktopNotification('Settings Saved', 'Your preferences have been updated.', false);
+    toggleSettingsPanel();
+}
+
+function resetSettings() {
+    if (confirm('Reset all settings to defaults?')) {
+        settings = {...DEFAULT_SETTINGS};
+        saveSettings();
+        location.reload();
+    }
+}
+
+// Make functions globally accessible for onclick handlers
+window.toggleSettingsPanel = toggleSettingsPanel;
+window.saveSettingsFromPanel = saveSettingsFromPanel;
+window.resetSettings = resetSettings;
 
 // Generate protocol distribution chart
 function generateProtocolChart() {
@@ -182,6 +525,9 @@ function connectWebSocket() {
 // ============================================================================
 
 function updateUI(data) {
+    // Track historical data
+    trackHistoricalData(data);
+
     // Update attack mode state
     const wasAttackMode = isAttackMode;
     isAttackMode = data.attack_detected || false;
@@ -191,14 +537,47 @@ function updateUI(data) {
         visualization.setAttackMode(isAttackMode);
     }
 
-    // Switch modes
+    // Attack detection notifications
     if (isAttackMode !== wasAttackMode) {
         if (isAttackMode) {
+            // Attack started
+            attackStartTime = Date.now();
             document.body.classList.remove('mode-normal');
             document.body.classList.add('mode-attack');
+
+            // Alert user
+            showDesktopNotification(
+                '🚨 DDoS Attack Detected!',
+                `${data.total_connections || 0} connections detected. Latency: ${data.latency || 0}ms`,
+                true
+            );
+            playAlertSound(800, 200); // Warning tone
         } else {
+            // Attack ended
+            const duration = attackStartTime ? ((Date.now() - attackStartTime) / 1000).toFixed(0) : 0;
             document.body.classList.remove('mode-attack');
             document.body.classList.add('mode-normal');
+
+            showDesktopNotification(
+                '✅ Attack Mitigated',
+                `Network stabilized after ${duration}s. System returning to normal.`,
+                false
+            );
+            playAlertSound(600, 100); // All clear tone
+            attackStartTime = null;
+        }
+    }
+
+    // Warning thresholds (when not in attack mode)
+    if (!isAttackMode) {
+        const latency = data.latency || 0;
+        const packetLoss = data.packet_loss || 0;
+        const connections = data.total_connections || 0;
+
+        if (latency > settings.latencyWarning ||
+            packetLoss > settings.packetLossWarning ||
+            connections > settings.connectionWarning) {
+            playAlertSound(500, 50); // Minor alert
         }
     }
 
@@ -378,12 +757,23 @@ function refreshConnectionLog() {
         ipHeader.appendChild(ipAddress);
         ipHeader.appendChild(connCount);
 
-        // Create port info
+        // Create port info with suspicious port highlighting
         const portInfo = document.createElement('div');
         portInfo.className = 'port-info';
         const portsArray = Array.from(entry.ports).slice(0, 5);
         const localPortsArray = Array.from(entry.localPorts).slice(0, 3);
-        portInfo.textContent = `Ports: ${portsArray.join(', ')}${entry.ports.size > 5 ? '...' : ''} → ${localPortsArray.join(', ')}`;
+
+        // Check for suspicious ports
+        const suspiciousPorts = portsArray.filter(p => SUSPICIOUS_PORTS.has(p));
+        const hasSuspiciousPorts = suspiciousPorts.length > 0;
+
+        if (hasSuspiciousPorts) {
+            portInfo.innerHTML = `Ports: ${portsArray.map(p =>
+                SUSPICIOUS_PORTS.has(p) ? `<span class="suspicious-port">${p}</span>` : p
+            ).join(', ')}${entry.ports.size > 5 ? '...' : ''} → ${localPortsArray.join(', ')} <span class="warning-icon">⚠️</span>`;
+        } else {
+            portInfo.textContent = `Ports: ${portsArray.join(', ')}${entry.ports.size > 5 ? '...' : ''} → ${localPortsArray.join(', ')}`;
+        }
 
         // Create timestamp
         const timestamp = document.createElement('div');
@@ -394,10 +784,116 @@ function refreshConnectionLog() {
         ipEntry.appendChild(portInfo);
         ipEntry.appendChild(timestamp);
 
+        // Make IP entry clickable for details
+        ipEntry.style.cursor = 'pointer';
+        ipEntry.addEventListener('click', () => showConnectionDetails(ip, entry));
+
         logEl.appendChild(ipEntry);
     });
 
     lastRefreshTime = now;
+}
+
+// ============================================================================
+// CONNECTION DETAILS MODAL
+// ============================================================================
+
+async function showConnectionDetails(ip, entry) {
+    // Create modal
+    const modal = document.createElement('div');
+    modal.className = 'connection-modal';
+
+    const modalContent = document.createElement('div');
+    modalContent.className = 'modal-content';
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'modal-header';
+    header.innerHTML = `
+        <h2>🔍 Connection Details</h2>
+        <button class="close-btn" onclick="this.closest('.connection-modal').remove()">×</button>
+    `;
+
+    // Body
+    const body = document.createElement('div');
+    body.className = 'modal-body';
+    body.innerHTML = `
+        <div class="detail-section">
+            <h3>IP Information</h3>
+            <div class="detail-row"><span class="detail-label">IP Address:</span> <span class="detail-value">${ip}</span></div>
+            <div class="detail-row"><span class="detail-label">Type:</span> <span class="detail-value">${entry.isLocal ? 'Local Network' : 'Remote/Public'}</span></div>
+            <div class="detail-row"><span class="detail-label">Connection Count:</span> <span class="detail-value">${entry.connCount}</span></div>
+            <div class="detail-row"><span class="detail-label">First Seen:</span> <span class="detail-value">${new Date(entry.firstSeen).toLocaleString()}</span></div>
+            <div class="detail-row"><span class="detail-label">Last Seen:</span> <span class="detail-value">${new Date(entry.lastSeen).toLocaleString()}</span></div>
+            <div class="detail-row"><span class="detail-label">Duration:</span> <span class="detail-value">${((entry.lastSeen - entry.firstSeen) / 1000).toFixed(0)}s</span></div>
+        </div>
+
+        <div class="detail-section">
+            <h3>Port Analysis</h3>
+            <div class="detail-row"><span class="detail-label">Remote Ports:</span> <span class="detail-value">${Array.from(entry.ports).join(', ')}</span></div>
+            <div class="detail-row"><span class="detail-label">Local Ports:</span> <span class="detail-value">${Array.from(entry.localPorts).join(', ')}</span></div>
+            ${Array.from(entry.ports).some(p => SUSPICIOUS_PORTS.has(p)) ?
+                `<div class="detail-row warning"><span class="detail-label">⚠️ Suspicious Ports:</span> <span class="detail-value">${Array.from(entry.ports).filter(p => SUSPICIOUS_PORTS.has(p)).join(', ')}</span></div>` : ''}
+        </div>
+
+        <div class="detail-section" id="geo-section">
+            <h3>Geographic Information</h3>
+            <div class="detail-row"><span class="detail-label">Loading...</span></div>
+        </div>
+    `;
+
+    modalContent.appendChild(header);
+    modalContent.appendChild(body);
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+
+    // Click outside to close
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+
+    // Fetch Geo-IP data (only for non-local IPs)
+    if (!entry.isLocal) {
+        fetchGeoIPData(ip);
+    } else {
+        document.getElementById('geo-section').innerHTML = `
+            <h3>Geographic Information</h3>
+            <div class="detail-row"><span class="detail-label">Location:</span> <span class="detail-value">Local Network (no geo data)</span></div>
+        `;
+    }
+}
+
+async function fetchGeoIPData(ip) {
+    try {
+        const response = await fetch(`http://ip-api.com/json/${ip}`);
+        const data = await response.json();
+
+        if (data.status === 'success') {
+            document.getElementById('geo-section').innerHTML = `
+                <h3>Geographic Information</h3>
+                <div class="detail-row"><span class="detail-label">Country:</span> <span class="detail-value">${data.country} ${data.countryCode ? `(${data.countryCode})` : ''}</span></div>
+                <div class="detail-row"><span class="detail-label">Region:</span> <span class="detail-value">${data.regionName || 'Unknown'}</span></div>
+                <div class="detail-row"><span class="detail-label">City:</span> <span class="detail-value">${data.city || 'Unknown'}</span></div>
+                <div class="detail-row"><span class="detail-label">ISP:</span> <span class="detail-value">${data.isp || 'Unknown'}</span></div>
+                <div class="detail-row"><span class="detail-label">Organization:</span> <span class="detail-value">${data.org || 'Unknown'}</span></div>
+                <div class="detail-row"><span class="detail-label">Coordinates:</span> <span class="detail-value">${data.lat}, ${data.lon}</span></div>
+                <div class="detail-row"><span class="detail-label">Timezone:</span> <span class="detail-value">${data.timezone || 'Unknown'}</span></div>
+            `;
+        } else {
+            document.getElementById('geo-section').innerHTML = `
+                <h3>Geographic Information</h3>
+                <div class="detail-row"><span class="detail-label">Error:</span> <span class="detail-value">Unable to fetch geo data</span></div>
+            `;
+        }
+    } catch (error) {
+        console.error('Geo-IP fetch error:', error);
+        document.getElementById('geo-section').innerHTML = `
+            <h3>Geographic Information</h3>
+            <div class="detail-row"><span class="detail-label">Error:</span> <span class="detail-value">Network error fetching geo data</span></div>
+        `;
+    }
 }
 
 function updateProtocolDistribution(distribution) {
