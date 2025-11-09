@@ -6,6 +6,17 @@ A desktop application that monitors your network for DDoS attacks, featuring a c
 
 ![Version](https://img.shields.io/badge/version-3.0-green)
 ![License](https://img.shields.io/badge/license-MIT-blue)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
+
+## 🖥️ Cross-Platform Support
+
+DDoS Gotchi runs on **Windows**, **macOS**, **Linux** (Ubuntu, Fedora, and other distributions).
+
+- ✅ **Windows 10/11** - Full support with `.bat` launchers
+- ✅ **macOS** - Native support (Intel & Apple Silicon)
+- ✅ **Linux** - Ubuntu, Fedora, Debian, and other distributions
+- ✅ **Electron** - Cross-platform desktop app framework
+- ✅ **Python** - Platform-independent backend
 
 ## 🎯 Two Versions Available
 
@@ -67,6 +78,9 @@ cd DDoSGotchi
 
 2. **Install Node.js** (if not already installed)
 ```bash
+# Windows
+# Download and install from: https://nodejs.org/
+
 # Fedora
 sudo dnf install nodejs npm
 
@@ -78,8 +92,15 @@ brew install node
 ```
 
 3. **Run the launcher** (auto-installs all dependencies)
+
+**Linux/macOS:**
 ```bash
 ./run-electron.sh
+```
+
+**Windows:**
+```cmd
+run-electron.bat
 ```
 
 The launcher will:
@@ -96,6 +117,9 @@ The launcher will:
 
 **System Packages** (required for matplotlib graphs):
 ```bash
+# Windows
+# tkinter comes with Python - make sure to check "tcl/tk and IDLE" during Python installation
+
 # Fedora
 sudo dnf install python3-tkinter python3-pillow-tk
 
@@ -115,8 +139,15 @@ cd DDoSGotchi
 ```
 
 2. **Run the launcher** (auto-installs dependencies)
+
+**Linux/macOS:**
 ```bash
 ./run-desktop.sh
+```
+
+**Windows:**
+```cmd
+run-desktop.bat
 ```
 
 Or install manually:
