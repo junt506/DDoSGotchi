@@ -233,15 +233,27 @@ class DDoSGotchiBackend:
 
             # Store results and report threats
             for ip, result in zip(ips_to_check, results):
-                if not isinstance(result, Exception):
-                    self.ip_threats[ip] = result
+                if isinstance(result, Exception):
+                    print(f"   ❌ Error checking {ip}: {result}")
+                    continue
 
-                    # Log if threat found
-                    if result.get('is_threat'):
-                        threat_level = result.get('threat_level', 'unknown')
-                        confidence = result.get('confidence', 0)
-                        sources = ', '.join(result.get('sources', []))
-                        print(f"⚠️  THREAT DETECTED: {ip} - {threat_level.upper()} ({confidence}% confidence) - Sources: {sources}")
+                self.ip_threats[ip] = result
+
+                # Debug: Log the result for each IP
+                if result.get('is_threat'):
+                    threat_level = result.get('threat_level', 'unknown')
+                    confidence = result.get('confidence', 0)
+                    sources = ', '.join(result.get('sources', []))
+                    tags = ', '.join(result.get('tags', []))
+                    print(f"   ⚠️  THREAT DETECTED: {ip}")
+                    print(f"      Level: {threat_level.upper()} | Confidence: {confidence}%")
+                    print(f"      Sources: {sources}")
+                    if tags:
+                        print(f"      Tags: {tags}")
+                else:
+                    # Log benign results too for debugging
+                    sources = ', '.join(result.get('sources', ['none']))
+                    print(f"   ✓ {ip}: BENIGN (sources: {sources})")
 
         # Clean up old entries (keep cache fresh)
         if len(self.ip_threats) > 500:
