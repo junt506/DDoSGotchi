@@ -337,19 +337,30 @@ class DDoSGotchiBackend:
 
     async def start_server(self):
         """Start the WebSocket server"""
-        # Start network monitoring in background
-        asyncio.create_task(self.monitor_network())
+        # Initialize threat intelligence session
+        await self.threat_intel.init_session()
 
-        # Start WebSocket server
-        print("🛡️  DDoS Gotchi Backend v3.0 - HUD Edition")
-        print("=" * 60)
-        print("WebSocket server starting on ws://localhost:8765")
-        print("Waiting for Electron frontend to connect...")
-        print("=" * 60)
+        try:
+            # Start network monitoring in background
+            asyncio.create_task(self.monitor_network())
 
-        async with websockets.serve(self.websocket_handler, "localhost", 8765):
-            await asyncio.Future()  # run forever
+            # Start WebSocket server
+            print("🛡️  DDoS Gotchi Backend v3.0 - HUD Edition")
+            print("=" * 60)
+            print("WebSocket server starting on ws://localhost:8765")
+            print("Waiting for Electron frontend to connect...")
+            print("=" * 60)
+
+            async with websockets.serve(self.websocket_handler, "localhost", 8765):
+                await asyncio.Future()  # run forever
+        finally:
+            # Clean up threat intelligence session
+            await self.threat_intel.close()
+            print("\n✓ Backend shutdown complete")
 
 if __name__ == "__main__":
     backend = DDoSGotchiBackend()
-    asyncio.run(backend.start_server())
+    try:
+        asyncio.run(backend.start_server())
+    except KeyboardInterrupt:
+        print("\n✓ Shutting down gracefully...")
