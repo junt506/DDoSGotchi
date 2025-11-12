@@ -29,14 +29,31 @@ class DDoSGotchiBackend:
         self.latency_data = deque(maxlen=100)
         self.packet_loss_data = deque(maxlen=100)
 
-        # Attack detection
-        self.attack_threshold = 50  # connections per IP
-        self.total_connections_threshold = 100
+        # Lab Mode - Sensitive detection for isolated testing environments
+        self.lab_mode = os.environ.get('LAB_MODE', '').lower() in ('true', '1', 'yes')
+
+        # Attack detection thresholds (adjusted for lab mode)
+        if self.lab_mode:
+            self.attack_threshold = 5  # connections per IP (lab mode: very sensitive)
+            self.total_connections_threshold = 10  # total connections
+            self.suspicious_threshold = 3  # warn at 3 connections per IP
+        else:
+            self.attack_threshold = 50  # connections per IP (production)
+            self.total_connections_threshold = 100  # total connections
+            self.suspicious_threshold = 20  # warn at 20 connections per IP
 
         # Timing
         self.last_update = time.time()
         self.connection_check_interval = 1.0
         self.refresh_interval = 15.0
+
+        # Traffic statistics tracking
+        self.last_net_io = psutil.net_io_counters()
+        self.last_net_io_time = time.time()
+        self.bytes_recv_per_sec = 0
+        self.bytes_sent_per_sec = 0
+        self.packets_recv_per_sec = 0
+        self.packets_sent_per_sec = 0
 
         # Threat Intelligence (optional API keys from environment)
         abuseipdb_key = os.environ.get('ABUSEIPDB_API_KEY')
@@ -159,11 +176,24 @@ class DDoSGotchiBackend:
         """Get all active network connections with protocol information"""
         connections = []
         protocol_counts = {'TCP': 0, 'UDP': 0, 'ICMP': 0, 'OTHER': 0}
+        incoming_count = 0
+        outgoing_count = 0
 
         try:
             import socket
+            local_ips = self._get_all_local_ips()
+
             for conn in psutil.net_connections(kind='inet'):
-                if conn.status == 'ESTABLISHED' and conn.raddr:
+                # In lab mode, monitor ALL connection states (including SYN floods, half-open)
+                # In normal mode, only monitor ESTABLISHED connections
+                if self.lab_mode:
+                    # Monitor everything with remote address (SYN_SENT, SYN_RECV, ESTABLISHED, etc.)
+                    should_monitor = conn.raddr is not None
+                else:
+                    # Original behavior - only ESTABLISHED connections
+                    should_monitor = conn.status == 'ESTABLISHED' and conn.raddr
+
+                if should_monitor:
                     # Determine protocol type
                     protocol = 'OTHER'
                     if conn.type == socket.SOCK_STREAM:
@@ -178,46 +208,113 @@ class DDoSGotchiBackend:
                     else:
                         protocol_counts['OTHER'] += 1
 
+                    # Determine direction (incoming vs outgoing)
+                    is_incoming = False
+                    if conn.laddr and conn.raddr:
+                        # Incoming: remote IP is connecting TO us (we're listening)
+                        # Common listening ports: 22, 80, 443, 8080, etc.
+                        if conn.laddr.port < 1024 or conn.status in ('LISTEN', 'SYN_RECV'):
+                            is_incoming = True
+                            incoming_count += 1
+                        else:
+                            outgoing_count += 1
+
                     connections.append({
                         'local_ip': conn.laddr.ip if conn.laddr else '',
                         'local_port': conn.laddr.port if conn.laddr else 0,
                         'remote_ip': conn.raddr.ip if conn.raddr else '',
                         'remote_port': conn.raddr.port if conn.raddr else 0,
                         'status': conn.status,
-                        'protocol': protocol
+                        'protocol': protocol,
+                        'is_incoming': is_incoming
                     })
         except Exception as e:
             print(f"Error getting connections: {e}")
 
-        return connections, protocol_counts
+        return connections, protocol_counts, incoming_count, outgoing_count
+
+    def _get_all_local_ips(self):
+        """Get all local IP addresses for direction detection"""
+        local_ips = set(['127.0.0.1', 'localhost'])
+        try:
+            import netifaces
+            for interface in netifaces.interfaces():
+                addrs = netifaces.ifaddresses(interface)
+                if netifaces.AF_INET in addrs:
+                    for addr_info in addrs[netifaces.AF_INET]:
+                        ip = addr_info.get('addr')
+                        if ip:
+                            local_ips.add(ip)
+        except:
+            pass
+        return local_ips
 
     def detect_attack(self, connections):
-        """Detect potential DDoS attacks"""
-        # Count connections per IP
+        """Detect potential DDoS attacks with lab mode sensitivity"""
+        # Count connections per IP (incoming only for attack detection)
         ip_counts = defaultdict(int)
+        incoming_ip_counts = defaultdict(int)
+
         for conn in connections:
             remote_ip = conn['remote_ip']
             if remote_ip:
                 ip_counts[remote_ip] += 1
+                if conn.get('is_incoming', False):
+                    incoming_ip_counts[remote_ip] += 1
 
         # Check for attack patterns
         attack_detected = False
+        suspicious_detected = False
         attack_ips = []
+        suspicious_ips = []
 
-        # Single IP threshold
-        for ip, count in ip_counts.items():
+        # Per-IP threshold detection
+        for ip, count in incoming_ip_counts.items():
             if count >= self.attack_threshold:
                 attack_detected = True
                 attack_ips.append(ip)
+            elif count >= self.suspicious_threshold:
+                suspicious_detected = True
+                suspicious_ips.append(ip)
 
         # Total connections threshold
-        if len(connections) >= self.total_connections_threshold:
+        total_incoming = sum(incoming_ip_counts.values())
+        if total_incoming >= self.total_connections_threshold:
             attack_detected = True
+
+        # Lab mode: Additional detection heuristics
+        if self.lab_mode:
+            # Multiple IPs from same subnet attacking (botnet pattern)
+            subnet_counts = defaultdict(int)
+            for ip in incoming_ip_counts.keys():
+                subnet = '.'.join(ip.split('.')[:3])  # /24 subnet
+                subnet_counts[subnet] += 1
+
+            # If 3+ IPs from same subnet, likely botnet
+            for subnet, count in subnet_counts.items():
+                if count >= 3:
+                    attack_detected = True
+                    if self.lab_mode:
+                        print(f"🚨 LAB MODE: Botnet pattern detected from subnet {subnet}.0/24 ({count} IPs)")
+
+        # Determine threat level
+        if attack_detected:
+            threat_level = 'critical'
+        elif suspicious_detected:
+            threat_level = 'warning'
+        elif len(connections) > 5:
+            threat_level = 'elevated'
+        else:
+            threat_level = 'normal'
 
         return {
             'attack_detected': attack_detected,
+            'suspicious_detected': suspicious_detected,
             'attack_ips': attack_ips,
-            'ip_counts': dict(ip_counts)
+            'suspicious_ips': suspicious_ips,
+            'ip_counts': dict(ip_counts),
+            'incoming_ip_counts': dict(incoming_ip_counts),
+            'threat_level': threat_level
         }
 
     async def check_threats(self, unique_ips):
@@ -265,13 +362,42 @@ class DDoSGotchiBackend:
             for ip in ips_to_remove:
                 del self.ip_threats[ip]
 
+    def update_traffic_stats(self):
+        """Update network traffic statistics (bytes/sec, packets/sec)"""
+        try:
+            current_io = psutil.net_io_counters()
+            current_time = time.time()
+            time_delta = current_time - self.last_net_io_time
+
+            if time_delta > 0:
+                # Calculate bytes per second
+                self.bytes_recv_per_sec = (current_io.bytes_recv - self.last_net_io.bytes_recv) / time_delta
+                self.bytes_sent_per_sec = (current_io.bytes_sent - self.last_net_io.bytes_sent) / time_delta
+
+                # Calculate packets per second
+                self.packets_recv_per_sec = (current_io.packets_recv - self.last_net_io.packets_recv) / time_delta
+                self.packets_sent_per_sec = (current_io.packets_sent - self.last_net_io.packets_sent) / time_delta
+
+                # Lab mode: Log high traffic rates
+                if self.lab_mode and self.packets_recv_per_sec > 100:
+                    print(f"📊 LAB MODE: High incoming traffic - {self.packets_recv_per_sec:.0f} packets/sec, {self.bytes_recv_per_sec/1024:.1f} KB/sec")
+
+            self.last_net_io = current_io
+            self.last_net_io_time = current_time
+
+        except Exception as e:
+            print(f"Error updating traffic stats: {e}")
+
     async def monitor_network(self):
         """Main network monitoring loop"""
         while True:
             current_time = time.time()
 
-            # Get network connections with protocol information
-            connections, protocol_counts = self.get_network_connections()
+            # Update traffic statistics
+            self.update_traffic_stats()
+
+            # Get network connections with protocol information and direction
+            connections, protocol_counts, incoming_count, outgoing_count = self.get_network_connections()
 
             # Detect attacks
             attack_info = self.detect_attack(connections)
@@ -312,25 +438,44 @@ class DDoSGotchiBackend:
                 self.packet_loss_data.append(packet_loss)
                 self.last_update = current_time
 
+            # Lab mode: Enhanced logging
+            if self.lab_mode and attack_info['attack_detected']:
+                print(f"\n🚨 LAB MODE - ATTACK DETECTED!")
+                print(f"   Incoming connections: {incoming_count}")
+                print(f"   Attack IPs: {', '.join(attack_info['attack_ips'])}")
+                print(f"   Suspicious IPs: {', '.join(attack_info.get('suspicious_ips', []))}")
+                print(f"   Threat level: {attack_info['threat_level'].upper()}\n")
+
             # Prepare data to send
             data = {
                 'timestamp': datetime.now().isoformat(),
                 'total_connections': len(connections),
                 'unique_ips': len(unique_ips),
+                'incoming_connections': incoming_count,
+                'outgoing_connections': outgoing_count,
                 'latency': self.latency_data[-1] if self.latency_data else 0,
                 'packet_loss': self.packet_loss_data[-1] if self.packet_loss_data else 0,
                 'attack_detected': attack_info['attack_detected'],
+                'suspicious_detected': attack_info.get('suspicious_detected', False),
                 'attack_ips': attack_info['attack_ips'],
-                'threat_level': 'warning' if len(connections) > 20 else ('critical' if attack_info['attack_detected'] else 'normal'),
+                'suspicious_ips': attack_info.get('suspicious_ips', []),
+                'threat_level': attack_info['threat_level'],
                 'connections': connections,  # All active connections
                 'recent_connections': self.recent_connections,
                 'network_info': self.get_network_info(),
                 'protocol_distribution': protocol_counts,
+                'traffic_stats': {
+                    'bytes_recv_per_sec': self.bytes_recv_per_sec,
+                    'bytes_sent_per_sec': self.bytes_sent_per_sec,
+                    'packets_recv_per_sec': self.packets_recv_per_sec,
+                    'packets_sent_per_sec': self.packets_sent_per_sec
+                },
                 'threats': {
                     'malicious_count': len(malicious_ips),
                     'malicious_ips': malicious_ips,
                     'ip_threat_data': self.ip_threats
-                }
+                },
+                'lab_mode': self.lab_mode
             }
 
             # Store for WebSocket broadcast
@@ -374,6 +519,23 @@ class DDoSGotchiBackend:
             print("WebSocket server starting on ws://localhost:8765")
             print("Waiting for Electron frontend to connect...")
             print("")
+
+            # Detection Mode Status
+            if self.lab_mode:
+                print("🔬 LAB MODE ENABLED - Sensitive Detection Active")
+                print(f"   Attack threshold: {self.attack_threshold} connections/IP")
+                print(f"   Suspicious threshold: {self.suspicious_threshold} connections/IP")
+                print(f"   Total connections threshold: {self.total_connections_threshold}")
+                print(f"   Monitoring ALL connection states (SYN floods, half-open, etc.)")
+                print(f"   Botnet pattern detection: 3+ IPs from same subnet")
+                print("")
+            else:
+                print("🌐 Production Mode - Standard Thresholds")
+                print(f"   Attack threshold: {self.attack_threshold} connections/IP")
+                print(f"   Total connections threshold: {self.total_connections_threshold}")
+                print(f"   Set LAB_MODE=true for sensitive detection")
+                print("")
+
             print("🛡️  Threat Intelligence Status:")
             if self.threat_intel.enable_greynoise:
                 print(f"   ✓ GreyNoise: Enabled (set via ENABLE_GREYNOISE)")
