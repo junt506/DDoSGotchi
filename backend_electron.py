@@ -267,12 +267,14 @@ class DDoSGotchiBackend:
         suspicious_detected = False
         attack_ips = []
         suspicious_ips = []
+        attack_type = None
 
-        # Per-IP threshold detection
+        # Per-IP threshold detection (connection-based)
         for ip, count in incoming_ip_counts.items():
             if count >= self.attack_threshold:
                 attack_detected = True
                 attack_ips.append(ip)
+                attack_type = "Connection-based DDoS"
             elif count >= self.suspicious_threshold:
                 suspicious_detected = True
                 suspicious_ips.append(ip)
@@ -281,6 +283,33 @@ class DDoSGotchiBackend:
         total_incoming = sum(incoming_ip_counts.values())
         if total_incoming >= self.total_connections_threshold:
             attack_detected = True
+            if not attack_type:
+                attack_type = "High connection volume"
+
+        # TRAFFIC-BASED DETECTION (for UDP floods, ICMP floods, etc.)
+        # Check if we have traffic statistics available
+        if hasattr(self, 'packets_recv_per_sec') and hasattr(self, 'bytes_recv_per_sec'):
+            # Set thresholds based on mode
+            if self.lab_mode:
+                # Lab mode: very sensitive for testing
+                packets_threshold = 150  # packets/sec (your attack is 300-500 pps)
+                bytes_threshold = 10 * 1024  # 10 KB/sec
+            else:
+                # Production mode: higher thresholds
+                packets_threshold = 1000  # packets/sec
+                bytes_threshold = 100 * 1024  # 100 KB/sec
+
+            # Check for volumetric attack
+            if self.packets_recv_per_sec > packets_threshold:
+                attack_detected = True
+                attack_type = "Volumetric DDoS (UDP/ICMP Flood)"
+                if self.lab_mode:
+                    # In lab mode, mark this as attack even without connection info
+                    if not attack_ips:
+                        attack_ips.append("Unknown (volumetric)")
+
+            elif self.packets_recv_per_sec > (packets_threshold * 0.5):
+                suspicious_detected = True
 
         # Lab mode: Additional detection heuristics
         if self.lab_mode:
@@ -294,8 +323,9 @@ class DDoSGotchiBackend:
             for subnet, count in subnet_counts.items():
                 if count >= 3:
                     attack_detected = True
-                    if self.lab_mode:
-                        print(f"🚨 LAB MODE: Botnet pattern detected from subnet {subnet}.0/24 ({count} IPs)")
+                    if not attack_type:
+                        attack_type = "Botnet Attack"
+                    print(f"🚨 LAB MODE: Botnet pattern detected from subnet {subnet}.0/24 ({count} IPs)")
 
         # Determine threat level
         if attack_detected:
@@ -312,6 +342,7 @@ class DDoSGotchiBackend:
             'suspicious_detected': suspicious_detected,
             'attack_ips': attack_ips,
             'suspicious_ips': suspicious_ips,
+            'attack_type': attack_type,
             'ip_counts': dict(ip_counts),
             'incoming_ip_counts': dict(incoming_ip_counts),
             'threat_level': threat_level
@@ -441,9 +472,14 @@ class DDoSGotchiBackend:
             # Lab mode: Enhanced logging
             if self.lab_mode and attack_info['attack_detected']:
                 print(f"\n🚨 LAB MODE - ATTACK DETECTED!")
+                if attack_info.get('attack_type'):
+                    print(f"   Attack Type: {attack_info['attack_type']}")
                 print(f"   Incoming connections: {incoming_count}")
-                print(f"   Attack IPs: {', '.join(attack_info['attack_ips'])}")
-                print(f"   Suspicious IPs: {', '.join(attack_info.get('suspicious_ips', []))}")
+                print(f"   Traffic: {self.packets_recv_per_sec:.0f} packets/sec, {self.bytes_recv_per_sec/1024:.1f} KB/sec")
+                if attack_info['attack_ips']:
+                    print(f"   Attack IPs: {', '.join(str(ip) for ip in attack_info['attack_ips'])}")
+                if attack_info.get('suspicious_ips'):
+                    print(f"   Suspicious IPs: {', '.join(attack_info.get('suspicious_ips', []))}")
                 print(f"   Threat level: {attack_info['threat_level'].upper()}\n")
 
             # Prepare data to send
@@ -459,6 +495,7 @@ class DDoSGotchiBackend:
                 'suspicious_detected': attack_info.get('suspicious_detected', False),
                 'attack_ips': attack_info['attack_ips'],
                 'suspicious_ips': attack_info.get('suspicious_ips', []),
+                'attack_type': attack_info.get('attack_type', 'Unknown'),
                 'threat_level': attack_info['threat_level'],
                 'connections': connections,  # All active connections
                 'recent_connections': self.recent_connections,
@@ -523,16 +560,18 @@ class DDoSGotchiBackend:
             # Detection Mode Status
             if self.lab_mode:
                 print("🔬 LAB MODE ENABLED - Sensitive Detection Active")
-                print(f"   Attack threshold: {self.attack_threshold} connections/IP")
+                print(f"   Connection-based: {self.attack_threshold} connections/IP")
                 print(f"   Suspicious threshold: {self.suspicious_threshold} connections/IP")
-                print(f"   Total connections threshold: {self.total_connections_threshold}")
+                print(f"   Total connections: {self.total_connections_threshold}")
+                print(f"   Traffic-based: 150 packets/sec (UDP/ICMP flood detection)")
                 print(f"   Monitoring ALL connection states (SYN floods, half-open, etc.)")
                 print(f"   Botnet pattern detection: 3+ IPs from same subnet")
                 print("")
             else:
                 print("🌐 Production Mode - Standard Thresholds")
-                print(f"   Attack threshold: {self.attack_threshold} connections/IP")
-                print(f"   Total connections threshold: {self.total_connections_threshold}")
+                print(f"   Connection-based: {self.attack_threshold} connections/IP")
+                print(f"   Total connections: {self.total_connections_threshold}")
+                print(f"   Traffic-based: 1000 packets/sec")
                 print(f"   Set LAB_MODE=true for sensitive detection")
                 print("")
 
