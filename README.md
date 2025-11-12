@@ -107,6 +107,33 @@ run-electron.bat
 
 That's it! The launcher handles all Python and Node.js dependencies automatically.
 
+## 🔬 Lab Mode (For Security Research)
+
+Testing DDoS attacks in an isolated lab? Use **Lab Mode** for sensitive detection:
+
+```bash
+# Linux/macOS
+./run-electron-lab.sh
+
+# Or set environment variable
+LAB_MODE=true ./run-electron.sh
+```
+
+**Lab Mode Features:**
+- **Ultra-sensitive detection** - Detects attacks from as few as 5 connections/IP
+- **All connection states** - Monitors SYN floods, half-open connections, etc.
+- **Botnet pattern detection** - Identifies multiple IPs from same subnet
+- **Traffic volume monitoring** - Tracks bytes/sec and packets/sec
+- **Enhanced logging** - Detailed attack information in console
+
+**Perfect for:**
+- Testing Mirai botnet variants in airgapped labs
+- Low-volume attack simulation (6-10 Raspberry Pi botnets)
+- Honeypot deployments with limited traffic
+- Security research in controlled environments
+
+📖 **See [LAB_MODE.md](LAB_MODE.md) for complete documentation**
+
 ## 🔑 Threat Intelligence Setup (Optional)
 
 DDoS Gotchi works without API keys, but you'll get enhanced threat detection with them:
