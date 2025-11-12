@@ -137,8 +137,17 @@ class DDoSGotchiBackend:
     def measure_latency(self):
         """Measure network latency using ping"""
         try:
+            # Lab mode: ping local gateway (more sensitive to local attacks)
+            # Production: ping 8.8.8.8 (internet connectivity)
+            if self.lab_mode:
+                target = self.get_gateway_ip()
+                if not target or target == "0.0.0.0":
+                    target = "8.8.8.8"  # Fallback
+            else:
+                target = "8.8.8.8"
+
             result = subprocess.run(
-                ['ping', '-c', '1', '-W', '1', '8.8.8.8'],
+                ['ping', '-c', '1', '-W', '1', target],
                 capture_output=True,
                 text=True,
                 timeout=2
@@ -156,8 +165,17 @@ class DDoSGotchiBackend:
     def measure_packet_loss(self):
         """Measure packet loss using ping"""
         try:
+            # Lab mode: ping local gateway (more sensitive to local attacks)
+            # Production: ping 8.8.8.8 (internet connectivity)
+            if self.lab_mode:
+                target = self.get_gateway_ip()
+                if not target or target == "0.0.0.0":
+                    target = "8.8.8.8"  # Fallback
+            else:
+                target = "8.8.8.8"
+
             result = subprocess.run(
-                ['ping', '-c', '10', '-W', '1', '8.8.8.8'],
+                ['ping', '-c', '10', '-W', '1', target],
                 capture_output=True,
                 text=True,
                 timeout=12
@@ -168,7 +186,7 @@ class DDoSGotchiBackend:
                 if match:
                     return float(match.group(1))
         except Exception as e:
-            print(f"Error measuring packet loss: {e}")
+            print(f"Error measuring latency: {e}")
 
         return 0.0
 
@@ -249,6 +267,39 @@ class DDoSGotchiBackend:
             pass
         return local_ips
 
+    def get_udp_source_ips(self):
+        """Get UDP source IPs using ss command (for volumetric attack attribution)"""
+        udp_sources = set()
+        try:
+            # Use ss to get UDP connections with remote addresses
+            result = subprocess.run(
+                ['ss', '-nu'],  # -n = numeric, -u = UDP
+                capture_output=True,
+                text=True,
+                timeout=2
+            )
+
+            if result.returncode == 0:
+                lines = result.stdout.strip().split('\n')
+                local_ips = self._get_all_local_ips()
+
+                for line in lines[1:]:  # Skip header
+                    # Parse ss output: State Recv-Q Send-Q Local:Port Peer:Port
+                    parts = line.split()
+                    if len(parts) >= 5:
+                        peer = parts[4]
+                        # Extract IP from "IP:PORT" format
+                        if ':' in peer:
+                            peer_ip = peer.rsplit(':', 1)[0]
+                            # Skip local IPs and common ports
+                            if peer_ip not in local_ips and peer_ip != '*':
+                                udp_sources.add(peer_ip)
+        except Exception as e:
+            if self.lab_mode:
+                print(f"Warning: Could not get UDP source IPs: {e}")
+
+        return list(udp_sources)
+
     def detect_attack(self, connections):
         """Detect potential DDoS attacks with lab mode sensitivity"""
         # Count connections per IP (incoming only for attack detection)
@@ -304,9 +355,13 @@ class DDoSGotchiBackend:
                 attack_detected = True
                 attack_type = "Volumetric DDoS (UDP/ICMP Flood)"
                 if self.lab_mode:
-                    # In lab mode, mark this as attack even without connection info
+                    # Try to identify UDP source IPs
                     if not attack_ips:
-                        attack_ips.append("Unknown (volumetric)")
+                        udp_sources = self.get_udp_source_ips()
+                        if udp_sources:
+                            attack_ips.extend(udp_sources)
+                        else:
+                            attack_ips.append("Unknown (volumetric - use 'ss -nu' to see sources)")
 
             elif self.packets_recv_per_sec > (packets_threshold * 0.5):
                 suspicious_detected = True
