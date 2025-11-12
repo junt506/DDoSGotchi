@@ -19,6 +19,7 @@ Perfect for:
 | Attack Threshold | 50 connections/IP | **5 connections/IP** |
 | Suspicious Threshold | 20 connections/IP | **3 connections/IP** |
 | Total Connections | 100 total | **10 total** |
+| Traffic-Based Detection | 1000 packets/sec | **150 packets/sec** (UDP/ICMP floods) |
 | Connection Monitoring | ESTABLISHED only | **ALL states** (SYN floods, half-open, etc.) |
 | Botnet Detection | ❌ Disabled | **✅ Enabled** (3+ IPs from same subnet) |
 | Debug Logging | Minimal | **Enhanced** (attack details, traffic stats) |
@@ -61,13 +62,17 @@ LAB_MODE=true ./run-electron.sh
 
 ### 3. **Botnet Patterns**
 - Automatically detects **multiple IPs from same subnet**
-- Flags when 3+ IPs from same /24 subnet attack
+- Flags when 3+ IPs from **ANY** /24 subnet attack
+- **Works with any subnet** (45.33.0.x, 192.168.x.x, 10.x.x.x, etc.)
+- Dynamically extracts subnet from attacking IPs
 - Perfect for detecting coordinated botnet behavior
 
-### 4. **Traffic Volume Spikes**
+### 4. **Traffic Volume Spikes (UDP/ICMP Floods)**
+- **CRITICAL for detecting UDP floods** - doesn't rely on connections
+- Triggers attack at **150 packets/sec** in Lab Mode (vs 1000 in production)
 - Tracks **bytes per second** and **packets per second**
-- Logs high incoming traffic rates
-- Detects volumetric attacks (UDP floods, ICMP floods)
+- Detects volumetric attacks that don't show up as TCP connections
+- Perfect for Mirai UDP floods, ICMP floods, and other stateless attacks
 
 ### 5. **Directional Connection Tracking**
 - Distinguishes **incoming vs outgoing** connections
@@ -78,31 +83,54 @@ LAB_MODE=true ./run-electron.sh
 
 Lab Mode provides detailed attack information in the console:
 
+**Example 1: UDP Flood Detection**
 ```
 🚨 LAB MODE - ATTACK DETECTED!
+   Attack Type: Volumetric DDoS (UDP/ICMP Flood)
+   Incoming connections: 2
+   Traffic: 402 packets/sec, 22.1 KB/sec
+   Attack IPs: Unknown (volumetric)
+   Threat level: CRITICAL
+```
+
+**Example 2: Connection-Based Attack (HTTP flood, SYN flood)**
+```
+🚨 LAB MODE - ATTACK DETECTED!
+   Attack Type: Connection-based DDoS
    Incoming connections: 18
+   Traffic: 120 packets/sec, 15.3 KB/sec
    Attack IPs: 192.168.1.101, 192.168.1.102, 192.168.1.103
    Suspicious IPs: 192.168.1.104, 192.168.1.105
    Threat level: CRITICAL
 
 🚨 LAB MODE: Botnet pattern detected from subnet 192.168.1.0/24 (6 IPs)
+```
 
+**Note:** The subnet shown is **dynamically detected** from the attacking IPs. It works with any subnet (192.168.x.x, 45.33.0.x, 10.x.x.x, etc.)
+
+**Continuous Traffic Monitoring:**
+```
 📊 LAB MODE: High incoming traffic - 850 packets/sec, 1024.5 KB/sec
 ```
 
 ## Testing with Mirai Botnet
 
-### Your Use Case: 6 Raspberry Pis attacking Pwnagotchi
+### Your Use Case: 5-6 Raspberry Pis attacking Pwnagotchi
 
-**Problem**: Production mode didn't detect 6 Raspberry Pis attacking your laptop
+**Problem**: Production mode didn't detect Raspberry Pis attacking your laptop
 **Solution**: Lab Mode detects this easily!
 
 **Why it now works:**
 
 1. **Lower thresholds**: Each Pi only needs 5 connections to trigger alert
-2. **Botnet detection**: 6 Pis from same subnet = automatic detection
+2. **Botnet detection**: 3+ Pis from same subnet = automatic detection (works with ANY subnet!)
 3. **All connection states**: Catches SYN floods and incomplete connections
 4. **Traffic monitoring**: Detects volumetric attack patterns
+
+**Your Setup Example:**
+- Bots on **45.33.0.0/24** subnet (45.33.0.101, 45.33.0.102, etc.)
+- Lab Mode automatically detects: "Botnet pattern detected from subnet **45.33.0.0/24** (5 IPs)"
+- Also works with 192.168.x.x, 10.x.x.x, or any other subnet!
 
 ### Example Attack Scenarios
 
@@ -116,10 +144,12 @@ Lab Mode provides detailed attack information in the console:
 - **Production Mode**: No detection (not ESTABLISHED connections)
 - **Lab Mode**: ✅ **DETECTED** (monitors SYN_SENT state)
 
-#### Scenario 3: UDP Flood
-- High packet rate, low connection count
-- **Production Mode**: May not detect (focuses on TCP)
-- **Lab Mode**: ✅ **DETECTED** (traffic volume monitoring)
+#### Scenario 3: UDP Flood (Mirai command: `udp 45.33.0.4 60 dport=65535 len=512 rand=1`)
+- High packet rate (300-500 pps), zero TCP connections
+- UDP packets don't show up in connection monitoring
+- **Production Mode**: No detection (requires 1000 pps, focuses on connections)
+- **Lab Mode**: ✅ **DETECTED** (150 pps threshold, traffic-based detection)
+- **Attack Type**: "Volumetric DDoS (UDP/ICMP Flood)"
 
 ## Airgapped Lab Tips
 
@@ -138,13 +168,21 @@ If your lab is completely airgapped (no internet):
 
 ## Customizing Lab Mode Thresholds
 
-Edit `backend_electron.py` if you need even more sensitive detection:
+Edit `backend_electron.py` if you need different sensitivity:
 
+**Connection-based thresholds** (line 36-43):
 ```python
 if self.lab_mode:
     self.attack_threshold = 5       # Lower to 3 for ultra-sensitive
     self.total_connections_threshold = 10  # Lower to 5
     self.suspicious_threshold = 3   # Lower to 2
+```
+
+**Traffic-based thresholds** (line 293-300):
+```python
+if self.lab_mode:
+    packets_threshold = 150  # Lower to 100 for more sensitivity
+    bytes_threshold = 10 * 1024  # 10 KB/sec
 ```
 
 ## Troubleshooting
