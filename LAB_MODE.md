@@ -62,7 +62,9 @@ LAB_MODE=true ./run-electron.sh
 
 ### 3. **Botnet Patterns**
 - Automatically detects **multiple IPs from same subnet**
-- Flags when 3+ IPs from same /24 subnet attack
+- Flags when 3+ IPs from **ANY** /24 subnet attack
+- **Works with any subnet** (45.33.0.x, 192.168.x.x, 10.x.x.x, etc.)
+- Dynamically extracts subnet from attacking IPs
 - Perfect for detecting coordinated botnet behavior
 
 ### 4. **Traffic Volume Spikes (UDP/ICMP Floods)**
@@ -104,6 +106,8 @@ Lab Mode provides detailed attack information in the console:
 🚨 LAB MODE: Botnet pattern detected from subnet 192.168.1.0/24 (6 IPs)
 ```
 
+**Note:** The subnet shown is **dynamically detected** from the attacking IPs. It works with any subnet (192.168.x.x, 45.33.0.x, 10.x.x.x, etc.)
+
 **Continuous Traffic Monitoring:**
 ```
 📊 LAB MODE: High incoming traffic - 850 packets/sec, 1024.5 KB/sec
@@ -111,17 +115,22 @@ Lab Mode provides detailed attack information in the console:
 
 ## Testing with Mirai Botnet
 
-### Your Use Case: 6 Raspberry Pis attacking Pwnagotchi
+### Your Use Case: 5-6 Raspberry Pis attacking Pwnagotchi
 
-**Problem**: Production mode didn't detect 6 Raspberry Pis attacking your laptop
+**Problem**: Production mode didn't detect Raspberry Pis attacking your laptop
 **Solution**: Lab Mode detects this easily!
 
 **Why it now works:**
 
 1. **Lower thresholds**: Each Pi only needs 5 connections to trigger alert
-2. **Botnet detection**: 6 Pis from same subnet = automatic detection
+2. **Botnet detection**: 3+ Pis from same subnet = automatic detection (works with ANY subnet!)
 3. **All connection states**: Catches SYN floods and incomplete connections
 4. **Traffic monitoring**: Detects volumetric attack patterns
+
+**Your Setup Example:**
+- Bots on **45.33.0.0/24** subnet (45.33.0.101, 45.33.0.102, etc.)
+- Lab Mode automatically detects: "Botnet pattern detected from subnet **45.33.0.0/24** (5 IPs)"
+- Also works with 192.168.x.x, 10.x.x.x, or any other subnet!
 
 ### Example Attack Scenarios
 
